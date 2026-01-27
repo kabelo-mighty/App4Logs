@@ -19,15 +19,17 @@ export const LanguageSwitcher: React.FC = () => {
   }
 
   return (
-    <div className="flex items-center gap-2">
-      <label className="text-sm font-medium text-gray-700">{t('language')}:</label>
+    <div className="flex items-center gap-3 bg-white bg-opacity-20 backdrop-blur-lg px-4 py-2 rounded-lg border border-white border-opacity-30">
+      <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+        <path d="M5.5 13a3.5 3.5 0 01-.369-6.98 4 4 0 117.753-1 4.5 4.5 0 11-4.814 6.5c.25.065.5.1.75.1z" />
+      </svg>
       <select
         value={i18n.language}
         onChange={(e) => handleLanguageChange(e.target.value)}
-        className="px-3 py-1 border border-gray-300 rounded-md text-sm"
+        className="bg-transparent text-white font-semibold text-sm focus:outline-none cursor-pointer"
       >
         {languages.map(lang => (
-          <option key={lang.code} value={lang.code}>{lang.name}</option>
+          <option key={lang.code} value={lang.code} className="bg-gray-900">{lang.name}</option>
         ))}
       </select>
     </div>
