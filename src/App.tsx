@@ -1,10 +1,10 @@
-import React, { useState, useCallback, useEffect } from 'react'
+import React, { useState, useCallback, useEffect, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { LogEntry } from './types'
 import { FileUpload } from './components/FileUpload'
 import { FilterPanel } from './components/FilterPanel'
 import { Statistics } from './components/Statistics'
-import { LogViewer } from './components/LogViewer'
+import { PaginatedLogViewer } from './components/PaginatedLogViewer'
 import { ExportButtons } from './components/ExportButtons'
 import { LanguageSwitcher } from './components/LanguageSwitcher'
 import { ErrorBoundary } from './components/ErrorBoundary'
@@ -112,9 +112,14 @@ function AppContent() {
                       <div className="inline-flex items-center px-3 py-1 bg-blue-50 text-blue-700 rounded-full font-semibold">
                         {Math.round((filteredLogs.length / logs.length) * 100)}% shown
                       </div>
+                      {filteredLogs.length > 100 && (
+                        <div className="inline-flex items-center px-3 py-1 bg-green-50 text-green-700 rounded-full font-semibold">
+                          🚀 Virtualized
+                        </div>
+                      )}
                     </div>
                   </div>
-                  <LogViewer logs={filteredLogs} />
+                  <PaginatedLogViewer logs={filteredLogs} itemsPerPage={50} />
                 </div>
 
                 {/* Export Buttons */}

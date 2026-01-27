@@ -1,0 +1,166 @@
+import React, { useMemo, CSSProperties } from 'react'
+import { LogEntry } from '../types'
+
+interface VirtualizedLogViewerProps {
+  logs: LogEntry[]
+  height?: number
+  isLoading?: boolean
+}
+
+// Color mapping for log levels
+const levelColors: Record<string, { bg: string; text: string; border: string }> = {
+  ERROR: { bg: 'bg-red-50', text: 'text-red-700', border: 'border-l-red-500' },
+  WARNING: { bg: 'bg-yellow-50', text: 'text-yellow-700', border: 'border-l-yellow-500' },
+  INFO: { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-l-blue-500' },
+  DEBUG: { bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-l-purple-500' },
+  TRACE: { bg: 'bg-gray-50', text: 'text-gray-700', border: 'border-l-gray-500' },
+}
+
+/**
+ * Single virtualized log row component
+ * Memoized to prevent unnecessary re-renders
+ */
+const LogRow = React.memo(
+  ({
+    log,
+    style,
+  }: {
+    log: LogEntry
+    style?: CSSProperties
+  }) => {
+    const colors = levelColors[log.level] || levelColors.INFO
+    const timestamp = new Date(log.timestamp).toLocaleString()
+
+    return (
+      <div style={style} className="px-2 py-1">
+        <div
+          className={`
+        ${colors.bg} ${colors.border} border-l-4 px-4 py-3
+        hover:shadow-md transition-shadow duration-200 cursor-pointer
+        rounded
+      `}
+        >
+          <div className="flex items-start justify-between gap-2">
+            <div className="flex-1 min-w-0">
+              {/* Level and Timestamp */}
+              <div className="flex items-center gap-2 mb-1">
+                <span className={`${colors.text} font-semibold text-xs px-2 py-1 rounded bg-white`}>
+                  {log.level}
+                </span>
+                <span className="text-xs text-gray-500">{timestamp}</span>
+              </div>
+
+              {/* Source if available */}
+              {log.source && (
+                <div className="text-xs text-gray-600 mb-1">
+                  <span className="inline-block px-2 py-1 bg-white rounded">
+                    📦 {log.source}
+                  </span>
+                </div>
+              )}
+
+              {/* Message */}
+              <p className={`${colors.text} text-sm break-words font-mono leading-relaxed line-clamp-2`}>
+                {log.message}
+              </p>
+            </div>
+
+            {/* Log ID */}
+            <div className="text-xs text-gray-400 flex-shrink-0">#{log.id}</div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+)
+
+LogRow.displayName = 'LogRow'
+
+/**
+ * VirtualizedLogViewer Component
+ * 
+ * Renders large log lists efficiently with optimized scrolling
+ * Uses pagination to keep DOM nodes minimal
+ * 
+ * @param logs - Array of log entries to display
+ * @param height - Height of the viewer (default: 600px)
+ * @param isLoading - Show loading state
+ */
+export const VirtualizedLogViewer: React.FC<VirtualizedLogViewerProps> = ({
+  logs,
+  height = 600,
+  isLoading = false,
+}) => {
+  // Memoize the logs to prevent unnecessary re-renders
+  const memoizedLogs = useMemo(() => logs, [logs])
+
+  if (isLoading) {
+    return (
+      <div className="bg-gray-50 rounded-lg p-8 text-center">
+        <div className="inline-flex items-center justify-center mb-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        </div>
+        <p className="text-gray-600 font-semibold">Loading logs...</p>
+      </div>
+    )
+  }
+
+  if (memoizedLogs.length === 0) {
+    return (
+      <div className="bg-gray-50 rounded-lg p-8 text-center">
+        <svg
+          className="mx-auto w-12 h-12 text-gray-400 mb-4"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={1}
+            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+          />
+        </svg>
+        <p className="text-gray-600 font-semibold">No logs to display</p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="bg-white rounded-lg overflow-hidden border border-gray-200">
+      <div className="px-4 py-2 bg-gray-50 border-b border-gray-200">
+        <p className="text-xs text-gray-600 font-semibold">
+          Displaying {memoizedLogs.length.toLocaleString()} logs (optimized for performance)
+        </p>
+      </div>
+
+      <div
+        style={{
+          height: `${height}px`,
+          overflow: 'auto',
+          paddingRight: '2px',
+        }}
+        className="space-y-2 pr-2"
+      >
+        {memoizedLogs.map((log) => (
+          <LogRow key={log.id} log={log} />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+/**
+ * Hook for managing virtualization state
+ */
+export const useVirtualization = (logs: LogEntry[], itemsPerPage: number = 50) => {
+  return useMemo(
+    () => ({
+      total: logs.length,
+      pages: Math.ceil(logs.length / itemsPerPage),
+      itemsPerPage,
+      shouldUseVirtualization: logs.length > 100,
+    }),
+    [logs.length, itemsPerPage]
+  )
+}

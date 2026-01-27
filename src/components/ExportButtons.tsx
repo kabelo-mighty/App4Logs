@@ -1,18 +1,29 @@
-import React from 'react'
+import React, { useCallback } from 'react'
 import { LogEntry } from '../types'
 
 interface ExportProps {
   logs: LogEntry[]
 }
 
-export const ExportButtons: React.FC<ExportProps> = ({ logs }) => {
-  const exportAsJSON = () => {
+export const ExportButtons: React.FC<ExportProps> = React.memo(({ logs }) => {
+  const downloadFile = useCallback((blob: Blob, filename: string) => {
+    const url = window.URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = filename
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    window.URL.revokeObjectURL(url)
+  }, [])
+
+  const exportAsJSON = useCallback(() => {
     const dataStr = JSON.stringify(logs, null, 2)
     const dataBlob = new Blob([dataStr], { type: 'application/json' })
     downloadFile(dataBlob, `logs-${Date.now()}.json`)
-  }
+  }, [logs, downloadFile])
 
-  const exportAsCSV = () => {
+  const exportAsCSV = useCallback(() => {
     const headers = ['ID', 'Timestamp', 'Level', 'Source', 'Message']
     const rows = logs.map(log => [
       log.id,
@@ -29,18 +40,7 @@ export const ExportButtons: React.FC<ExportProps> = ({ logs }) => {
 
     const dataBlob = new Blob([csv], { type: 'text/csv' })
     downloadFile(dataBlob, `logs-${Date.now()}.csv`)
-  }
-
-  const downloadFile = (blob: Blob, filename: string) => {
-    const url = window.URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.href = url
-    link.download = filename
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-    window.URL.revokeObjectURL(url)
-  }
+  }, [logs, downloadFile])
 
   return (
     <div className="flex gap-3">
@@ -64,4 +64,9 @@ export const ExportButtons: React.FC<ExportProps> = ({ logs }) => {
       </button>
     </div>
   )
-}
+}, (prevProps, nextProps) => {
+  // Custom comparison: only re-render if logs changed
+  return prevProps.logs === nextProps.logs
+})
+
+ExportButtons.displayName = 'ExportButtons'

@@ -5,6 +5,7 @@ import { LogEntry } from '../types'
 import { ErrorRecovery, useErrorRecovery } from './ErrorRecovery'
 import { reportError, trackEvent, logUserAction } from '../utils/telemetry'
 import { validateFile } from '../utils/validation'
+import { useWorkerParser } from '../hooks/useWorkerParser'
 
 interface FileUploadProps {
   onLogsLoaded: (logs: LogEntry[]) => void
@@ -18,114 +19,121 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onLogsLoaded }) => {
   const [uploadProgress, setUploadProgress] = useState(0)
   const { error, showError, clearError } = useErrorRecovery()
   const [lastFile, setLastFile] = useState<File | null>(null)
+  const { parseFile: parseWithWorker } = useWorkerParser()
 
-  const handleDragEnter = (e: React.DragEvent) => {
+  const handleDragEnter = useCallback((e: React.DragEvent) => {
     e.preventDefault()
     if (!isLoading) setIsDragging(true)
-  }
+  }, [isLoading])
 
-  const handleDragLeave = () => {
+  const handleDragLeave = useCallback(() => {
     setIsDragging(false)
-  }
+  }, [])
 
-  const handleDrop = (e: React.DragEvent) => {
+  const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault()
     setIsDragging(false)
     processFiles(e.dataTransfer.files)
-  }
+  }, [])
 
-  const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileInput = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       processFiles(e.target.files)
     }
-  }
+  }, [])
 
-  const processFiles = useCallback((files: FileList) => {
-    clearError()
-    setUploadProgress(0)
+  const processFiles = useCallback(
+    (files: FileList) => {
+      clearError()
+      setUploadProgress(0)
 
-    if (files.length === 0) return
+      if (files.length === 0) return
 
-    const file = files[0]
-    setFileName(file.name)
-    setLastFile(file)
-    setIsLoading(true)
+      const file = files[0]
+      setFileName(file.name)
+      setLastFile(file)
+      setIsLoading(true)
 
-    // Validate file first
-    try {
-      validateFile(file)
-    } catch (err) {
-      const validationError = err instanceof Error ? err.message : 'Invalid file'
-      showError(validationError, 'upload')
-      setIsLoading(false)
-      logUserAction('file_validation_failed', {
-        fileName: file.name,
-        error: validationError,
-      })
-      return
-    }
-
-    const reader = new FileReader()
-    let progressInterval: ReturnType<typeof setInterval>
-
-    const progressInterval2 = setInterval(() => {
-      setUploadProgress(prev => Math.min(prev + 30, 90))
-    }, 100)
-    progressInterval = progressInterval2
-
-    reader.onload = (event) => {
-      clearInterval(progressInterval)
+      // Validate file first
       try {
-        const content = event.target?.result as string
-        setUploadProgress(95)
-
-        trackEvent('log_parsing_started', {
-          fileName: file.name,
-          fileSize: file.size,
-        })
-
-        const logs = LogParser.parseFile(content, file.name)
-
-        if (logs.length === 0) {
-          const emptyError = 'No valid logs found in file. Please check the file format.'
-          showError(emptyError, 'parsing')
-          setIsLoading(false)
-          setUploadProgress(0)
-          logUserAction('no_logs_found', { fileName: file.name })
-          return
-        }
-
-        setUploadProgress(100)
-        logUserAction('file_parsed_successfully', {
-          fileName: file.name,
-          logCount: logs.length,
-        })
-
-        setTimeout(() => {
-          onLogsLoaded(logs)
-          setIsLoading(false)
-          setUploadProgress(0)
-          setFileName(null)
-        }, 300)
+        validateFile(file)
       } catch (err) {
-        clearInterval(progressInterval)
-        const errorMsg = err instanceof Error ? err.message : 'Unknown parsing error'
-        showError(
-          `Failed to parse file: ${errorMsg}`,
-          'parsing'
-        )
-        reportError(err as Error, {
-          context: 'file_parsing',
-          fileName: file.name,
-        })
+        const validationError = err instanceof Error ? err.message : 'Invalid file'
+        showError(validationError, 'upload')
         setIsLoading(false)
-        setUploadProgress(0)
-        logUserAction('file_parsing_failed', {
+        logUserAction('file_validation_failed', {
           fileName: file.name,
-          error: errorMsg,
+          error: validationError,
         })
+        return
       }
-    }
+
+      const reader = new FileReader()
+      let progressInterval: ReturnType<typeof setInterval>
+
+      const progressInterval2 = setInterval(() => {
+        setUploadProgress(prev => Math.min(prev + 30, 90))
+      }, 100)
+      progressInterval = progressInterval2
+
+      reader.onload = async (event) => {
+        clearInterval(progressInterval)
+        try {
+          const content = event.target?.result as string
+          setUploadProgress(95)
+
+          trackEvent('log_parsing_started', {
+            fileName: file.name,
+            fileSize: file.size,
+            useWorker: file.size > 5 * 1024 * 1024, // Use worker for files > 5MB
+          })
+
+          // Use Web Worker for large files (> 5MB) to avoid blocking UI
+          let logs: LogEntry[] = []
+          if (file.size > 5 * 1024 * 1024) {
+            logs = await parseWithWorker(content, file.name)
+          } else {
+            // For smaller files, parse on main thread
+            logs = LogParser.parseFile(content, file.name)
+          }
+
+          if (logs.length === 0) {
+            const emptyError = 'No valid logs found in file. Please check the file format.'
+            showError(emptyError, 'parsing')
+            setIsLoading(false)
+            setUploadProgress(0)
+            logUserAction('no_logs_found', { fileName: file.name })
+            return
+          }
+
+          setUploadProgress(100)
+          logUserAction('file_parsed_successfully', {
+            fileName: file.name,
+            logCount: logs.length,
+          })
+
+          setTimeout(() => {
+            onLogsLoaded(logs)
+            setIsLoading(false)
+            setUploadProgress(0)
+            setFileName(null)
+          }, 300)
+        } catch (err) {
+          clearInterval(progressInterval)
+          const errorMsg = err instanceof Error ? err.message : 'Unknown parsing error'
+          showError(`Failed to parse file: ${errorMsg}`, 'parsing')
+          reportError(err as Error, {
+            context: 'file_parsing',
+            fileName: file.name,
+          })
+          setIsLoading(false)
+          setUploadProgress(0)
+          logUserAction('file_parsing_failed', {
+            fileName: file.name,
+            error: errorMsg,
+          })
+        }
+      }
 
     reader.onerror = () => {
       clearInterval(progressInterval)
