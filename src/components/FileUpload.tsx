@@ -195,6 +195,9 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onLogsLoaded }) => {
         onDragEnter={handleDragEnter}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
+        role="region"
+        aria-label="File upload area"
+        aria-describedby="file-upload-instructions"
         className={`border-2 border-dashed rounded-lg p-8 text-center transition-all duration-300 ${
           isLoading
             ? 'border-gray-300 bg-gray-50 opacity-60 cursor-not-allowed'
@@ -205,11 +208,11 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onLogsLoaded }) => {
       >
         {!isLoading ? (
           <>
-            <svg className="mx-auto h-16 w-16 text-blue-400 mb-2" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+            <svg className="mx-auto h-16 w-16 text-blue-400 mb-2" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
               <path d="M28 8H12a4 4 0 00-4 4v20a4 4 0 004 4h24a4 4 0 004-4V20m-6-6l-8-8m0 0l-8 8m8-8v20" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
             <p className="mt-3 text-base font-semibold text-gray-900">{t('dragDrop')}</p>
-            <p className="text-sm text-gray-500 mt-2">{t('orClickBrowse')}</p>
+            <p id="file-upload-instructions" className="text-sm text-gray-500 mt-2">{t('orClickBrowse')}</p>
 
             <input
               type="file"
@@ -218,10 +221,20 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onLogsLoaded }) => {
               onChange={handleFileInput}
               accept=".log,.json,.csv,.xml,.txt"
               disabled={isLoading}
+              aria-label="Select log file to upload"
+              aria-describedby="file-upload-help"
             />
 
-            <label htmlFor="file-upload" className="mt-6 inline-flex items-center px-6 py-3 border border-transparent text-sm font-semibold rounded-lg shadow-md text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 cursor-pointer transition-all duration-200 transform hover:scale-105 active:scale-95">
-              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <p id="file-upload-help" className="sr-only">
+              Supported formats: .log, .json, .csv, .xml, .txt. Maximum file size: 100MB
+            </p>
+
+            <label 
+              htmlFor="file-upload" 
+              className="mt-6 inline-flex items-center px-6 py-3 border border-transparent text-sm font-semibold rounded-lg shadow-md text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 cursor-pointer transition-all duration-200 transform hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              aria-pressed={false}
+            >
+              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
               </svg>
               {t('uploadFile')}
@@ -229,18 +242,18 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onLogsLoaded }) => {
           </>
         ) : (
           <>
-            <div className="inline-flex items-center justify-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            <div className="inline-flex items-center justify-center" aria-busy="true" role="status">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" aria-hidden="true"></div>
             </div>
             <p className="mt-4 text-base font-semibold text-gray-900">{fileName}</p>
-            <p className="text-sm text-gray-500 mt-2">Processing your log file...</p>
-            <div className="mt-4 w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+            <p className="text-sm text-gray-500 mt-2" aria-live="polite">Processing your log file...</p>
+            <div className="mt-4 w-full bg-gray-200 rounded-full h-2 overflow-hidden" role="progressbar" aria-valuenow={uploadProgress} aria-valuemin={0} aria-valuemax={100} aria-label="Upload progress">
               <div
                 className="bg-gradient-to-r from-blue-500 to-blue-600 h-full transition-all duration-300 ease-out"
                 style={{ width: `${uploadProgress}%` }}
               />
             </div>
-            <p className="text-xs text-gray-500 mt-2">{uploadProgress}%</p>
+            <p className="text-xs text-gray-500 mt-2" aria-live="polite">{uploadProgress}% complete</p>
           </>
         )}
       </div>

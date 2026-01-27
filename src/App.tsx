@@ -9,12 +9,19 @@ import { ExportButtons } from './components/ExportButtons'
 import { LanguageSwitcher } from './components/LanguageSwitcher'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { initErrorTracking, logUserAction, markPerformance, measurePerformance } from './utils/telemetry'
+import { usePageTitle, useSkipLink, useAriaLiveRegion } from './hooks/useAccessibility'
+import { announceContentChange } from './utils/accessibility'
 
 function AppContent() {
   const { t } = useTranslation()
   const [logs, setLogs] = useState<LogEntry[]>([])
   const [filteredLogs, setFilteredLogs] = useState<LogEntry[]>([])
   const [hasLoaded, setHasLoaded] = useState(false)
+  const { announcement, announce } = useAriaLiveRegion()
+  const { handleSkipClick } = useSkipLink('main-content')
+
+  // Set page title for screen readers
+  usePageTitle('Log Analyzer - WCAG 2.1 Accessible Log Analysis Tool')
 
   // Initialize error tracking on mount
   useEffect(() => {
@@ -36,14 +43,18 @@ function AppContent() {
       logUserAction('logs_uploaded', {
         count: newLogs.length,
       })
+      // Announce to screen readers
+      announceContentChange(newLogs.length.toString(), 'logs_loaded')
+      announce(`${newLogs.length} logs loaded successfully`)
       measurePerformance('logs-load', 'logs-load-start', 'logs-load-end')
     } catch (error) {
       logUserAction('logs_upload_failed', {
         error: error instanceof Error ? error.message : 'Unknown error',
       })
+      announce(error instanceof Error ? error.message : 'Error loading logs')
       throw error
     }
-  }, [])
+  }, [announce])
 
   const handleFilterChange = useCallback((filtered: LogEntry[]) => {
     try {
@@ -52,22 +63,49 @@ function AppContent() {
         resultCount: filtered.length,
         totalCount: logs.length,
       })
+      // Announce to screen readers
+      announceContentChange(filtered.length.toString(), 'filters_applied')
+      announce(`${filtered.length} logs shown after applying filters`)
     } catch (error) {
       logUserAction('filter_failed', {
         error: error instanceof Error ? error.message : 'Unknown error',
       })
+      announce(error instanceof Error ? error.message : 'Error applying filters')
       throw error
     }
-  }, [logs.length])
+  }, [logs.length, announce])
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
+      {/* Skip to main content link for keyboard navigation */}
+      <a
+        href="#main-content"
+        onClick={(e) => {
+          e.preventDefault()
+          handleSkipClick()
+        }}
+        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:bg-blue-600 focus:text-white focus:px-4 focus:py-2 focus:rounded"
+        tabIndex={0}
+      >
+        {t('skipToMainContent') || 'Skip to main content'}
+      </a>
+
+      {/* Aria Live Region for announcements */}
+      <div
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+        className="sr-only"
+      >
+        {announcement}
+      </div>
+
       {/* Header */}
-      <header className="bg-gradient-to-r from-blue-600 to-blue-800 shadow-xl">
+      <header className="bg-gradient-to-r from-blue-600 to-blue-800 shadow-xl" role="banner">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex justify-between items-center">
           <div>
             <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 bg-white rounded-lg">
+              <div className="p-2 bg-white rounded-lg" aria-hidden="true">
                 <svg className="w-6 h-6 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M2 5a2 2 0 012-2h12a2 2 0 012 2v10a2 2 0 01-2 2H4a2 2 0 01-2-2V5z" />
                 </svg>
@@ -82,7 +120,7 @@ function AppContent() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main id="main-content" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8" role="main">
         <div className="space-y-8">
           {/* Upload Section */}
           <div className="bg-white rounded-lg shadow-xl p-8">

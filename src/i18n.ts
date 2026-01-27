@@ -4,7 +4,7 @@ import { initReactI18next } from 'react-i18next'
 const resources = {
   en: {
     translation: {
-      title: 'App4Logs',
+      title: 'TrackIt',
       subtitle: 'By Kabelo Hlungwani',
       uploadFile: 'Upload Log File',
       dragDrop: 'Drag and drop your log file here',
@@ -32,7 +32,25 @@ const resources = {
       error: 'Error',
       warning: 'Warning',
       info: 'Info',
-      debug: 'Debug'
+      debug: 'Debug',
+      // Accessibility labels
+      skipToMainContent: 'Skip to main content',
+      firstPage: 'Go to first page',
+      previousPage: 'Go to previous page',
+      nextPage: 'Go to next page',
+      lastPage: 'Go to last page',
+      page: 'Page',
+      of: 'of',
+      logEntry: 'Log entry',
+      timestamp: 'Timestamp',
+      message: 'Message',
+      selectLogsInRange: 'Select logs in date range',
+      searchByKeyword: 'Search logs by keyword',
+      filterByLogLevel: 'Filter by log level',
+      closeDialog: 'Close dialog',
+      loading: 'Loading',
+      success: 'Success',
+      retryButton: 'Retry',
     }
   },
   es: {

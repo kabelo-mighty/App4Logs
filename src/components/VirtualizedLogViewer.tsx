@@ -1,5 +1,6 @@
 import React, { useMemo, CSSProperties } from 'react'
 import { LogEntry } from '../types'
+import { useKeyboardNavigation, useAriaLiveRegion } from '../hooks/useAccessibility'
 
 interface VirtualizedLogViewerProps {
   logs: LogEntry[]
@@ -24,37 +25,55 @@ const LogRow = React.memo(
   ({
     log,
     style,
+    index,
   }: {
     log: LogEntry
     style?: CSSProperties
+    index: number
   }) => {
     const colors = levelColors[log.level] || levelColors.INFO
     const timestamp = new Date(log.timestamp).toLocaleString()
 
     return (
-      <div style={style} className="px-2 py-1">
+      <div 
+        style={style} 
+        className="px-2 py-1"
+        role="row"
+        aria-rowindex={index + 1}
+      >
         <div
           className={`
         ${colors.bg} ${colors.border} border-l-4 px-4 py-3
         hover:shadow-md transition-shadow duration-200 cursor-pointer
-        rounded
+        rounded focus:outline-none focus:ring-2 focus:ring-blue-500
       `}
+          tabIndex={0}
+          role="article"
+          aria-label={`Log entry ${index + 1}: ${log.level} - ${log.message.substring(0, 50)}`}
         >
           <div className="flex items-start justify-between gap-2">
             <div className="flex-1 min-w-0">
               {/* Level and Timestamp */}
               <div className="flex items-center gap-2 mb-1">
-                <span className={`${colors.text} font-semibold text-xs px-2 py-1 rounded bg-white`}>
+                <span 
+                  className={`${colors.text} font-semibold text-xs px-2 py-1 rounded bg-white`}
+                  aria-label={`Log level: ${log.level}`}
+                >
                   {log.level}
                 </span>
-                <span className="text-xs text-gray-500">{timestamp}</span>
+                <time 
+                  className="text-xs text-gray-500"
+                  dateTime={log.timestamp}
+                >
+                  {timestamp}
+                </time>
               </div>
 
               {/* Source if available */}
               {log.source && (
                 <div className="text-xs text-gray-600 mb-1">
                   <span className="inline-block px-2 py-1 bg-white rounded">
-                    📦 {log.source}
+                    📦 <span aria-label="Source">{log.source}</span>
                   </span>
                 </div>
               )}
@@ -66,7 +85,7 @@ const LogRow = React.memo(
             </div>
 
             {/* Log ID */}
-            <div className="text-xs text-gray-400 flex-shrink-0">#{log.id}</div>
+            <div className="text-xs text-gray-400 flex-shrink-0" aria-label={`Entry ID: ${log.id}`}>#{log.id}</div>
           </div>
         </div>
       </div>
@@ -93,12 +112,17 @@ export const VirtualizedLogViewer: React.FC<VirtualizedLogViewerProps> = ({
 }) => {
   // Memoize the logs to prevent unnecessary re-renders
   const memoizedLogs = useMemo(() => logs, [logs])
+  const { announce } = useAriaLiveRegion()
 
   if (isLoading) {
     return (
-      <div className="bg-gray-50 rounded-lg p-8 text-center">
+      <div 
+        className="bg-gray-50 rounded-lg p-8 text-center"
+        role="status"
+        aria-label="Loading logs"
+      >
         <div className="inline-flex items-center justify-center mb-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" aria-hidden="true"></div>
         </div>
         <p className="text-gray-600 font-semibold">Loading logs...</p>
       </div>
@@ -107,12 +131,17 @@ export const VirtualizedLogViewer: React.FC<VirtualizedLogViewerProps> = ({
 
   if (memoizedLogs.length === 0) {
     return (
-      <div className="bg-gray-50 rounded-lg p-8 text-center">
+      <div 
+        className="bg-gray-50 rounded-lg p-8 text-center"
+        role="status"
+        aria-label="No logs available"
+      >
         <svg
           className="mx-auto w-12 h-12 text-gray-400 mb-4"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
+          aria-hidden="true"
         >
           <path
             strokeLinecap="round"
@@ -127,9 +156,13 @@ export const VirtualizedLogViewer: React.FC<VirtualizedLogViewerProps> = ({
   }
 
   return (
-    <div className="bg-white rounded-lg overflow-hidden border border-gray-200">
+    <section 
+      className="bg-white rounded-lg overflow-hidden border border-gray-200"
+      role="region"
+      aria-label={`Log viewer displaying ${memoizedLogs.length.toLocaleString()} log entries`}
+    >
       <div className="px-4 py-2 bg-gray-50 border-b border-gray-200">
-        <p className="text-xs text-gray-600 font-semibold">
+        <p className="text-xs text-gray-600 font-semibold" aria-live="polite">
           Displaying {memoizedLogs.length.toLocaleString()} logs (optimized for performance)
         </p>
       </div>
@@ -141,12 +174,14 @@ export const VirtualizedLogViewer: React.FC<VirtualizedLogViewerProps> = ({
           paddingRight: '2px',
         }}
         className="space-y-2 pr-2"
+        role="rowgroup"
+        aria-label="Log entries"
       >
-        {memoizedLogs.map((log) => (
-          <LogRow key={log.id} log={log} />
+        {memoizedLogs.map((log, index) => (
+          <LogRow key={log.id} log={log} index={index} />
         ))}
       </div>
-    </div>
+    </section>
   )
 }
 

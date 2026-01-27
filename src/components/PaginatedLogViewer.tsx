@@ -1,6 +1,8 @@
 import React, { useMemo, useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import { LogEntry } from '../types'
 import { VirtualizedLogViewer } from './VirtualizedLogViewer'
+import { useKeyboardNavigation } from '../hooks/useAccessibility'
 
 interface PaginatedLogViewerProps {
   logs: LogEntry[]
@@ -15,6 +17,7 @@ export const PaginatedLogViewer: React.FC<PaginatedLogViewerProps> = ({
   isLoading = false,
   onPageChange,
 }) => {
+  const { t } = useTranslation()
   const [currentPage, setCurrentPage] = React.useState(1)
 
   // Calculate pagination
@@ -73,7 +76,8 @@ export const PaginatedLogViewer: React.FC<PaginatedLogViewerProps> = ({
         <button
           key="first"
           onClick={() => handlePageChange(1)}
-          className="px-2 py-1 text-xs font-semibold text-blue-600 hover:bg-blue-50 rounded transition-colors"
+          aria-label={t('firstPage') || 'Go to first page'}
+          className="px-2 py-1 text-xs font-semibold text-blue-600 hover:bg-blue-50 rounded transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           First
         </button>
@@ -81,14 +85,17 @@ export const PaginatedLogViewer: React.FC<PaginatedLogViewerProps> = ({
     }
 
     for (let i = startPage; i <= endPage; i++) {
+      const isCurrentPage = i === pagination.currentPage
       buttons.push(
         <button
           key={i}
           onClick={() => handlePageChange(i)}
+          aria-label={`Go to page ${i}`}
+          aria-current={isCurrentPage ? 'page' : undefined}
           className={`
-            px-3 py-1 text-xs font-semibold rounded transition-colors
+            px-3 py-1 text-xs font-semibold rounded transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500
             ${
-              i === pagination.currentPage
+              isCurrentPage
                 ? 'bg-blue-600 text-white'
                 : 'text-gray-700 hover:bg-gray-100 border border-gray-300'
             }
