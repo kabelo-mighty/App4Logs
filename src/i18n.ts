@@ -4,8 +4,8 @@ import { initReactI18next } from 'react-i18next'
 const resources = {
   en: {
     translation: {
-      title: 'Log Analyzer',
-      subtitle: 'Analyze and filter your logs',
+      title: 'App4Logs',
+      subtitle: 'By Kabelo Hlungwani',
       uploadFile: 'Upload Log File',
       dragDrop: 'Drag and drop your log file here',
       orClickBrowse: 'or click to browse',

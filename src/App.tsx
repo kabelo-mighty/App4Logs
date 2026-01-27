@@ -137,7 +137,7 @@ function App() {
             </div>
           </div>
           <div className="border-t border-slate-700 mt-8 pt-8 text-center text-slate-400 text-sm">
-            <p>Log Analyzer v1.0 | Built with React, TypeScript & Tailwind CSS</p>
+            <p>Log Analyzer v1.0</p>
           </div>
         </div>
       </footer>
