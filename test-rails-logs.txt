@@ -1,0 +1,22 @@
+2024-01-27 08:15:22 [INFO] Rails Server started on port 3000
+2024-01-27 08:15:23 [DEBUG] ActiveRecord: Connecting to database: postgresql://localhost/app_db
+2024-01-27 08:15:24 [INFO] ActiveRecord: Migration 20240127081520 starting
+2024-01-27 08:15:25 [INFO] ActiveRecord: Migration 20240127081520 completed
+2024-01-27 08:15:26 [DEBUG] ActionController: Processing UsersController#index
+2024-01-27 08:15:26 [DEBUG] ActionController: Parameters: {"page"=>"1"}
+2024-01-27 08:15:27 [DEBUG] ActiveRecord: SELECT * FROM users LIMIT 10
+2024-01-27 08:15:27 [INFO] ActionView: Rendered users/index.html.erb
+2024-01-27 08:15:28 [INFO] ActionController: Completed 200 OK in 1523ms
+2024-01-27 08:15:35 [WARNING] ActionController: Slow request detected: UsersController#show took 2534ms
+2024-01-27 08:15:37 [ERROR] ActionController: 500 Internal Server Error: ActiveRecord::StatementInvalid
+2024-01-27 08:15:38 [ERROR] Backtrace: app/controllers/users_controller.rb:12:in `index'
+2024-01-27 08:15:39 [INFO] ActionController: Retry initiated for request ID: req-12346
+2024-01-27 08:16:01 [ERROR] ActiveRecord: Could not obtain connection from pool
+2024-01-27 08:16:02 [WARNING] ActiveRecord: Connection pool timeout: 5 requests waiting
+2024-01-27 08:16:05 [INFO] ActiveRecord: Connection pool size increased to 15
+2024-01-27 08:16:12 [ERROR] ActionController: Memory error: No space available for new objects
+2024-01-27 08:16:13 [INFO] GC: Starting garbage collection cycle
+2024-01-27 08:16:15 [INFO] GC: Garbage collection completed, freed 250MB
+2024-01-27 08:16:20 [WARNING] Rack: High request volume detected: 5000 req/s
+2024-01-27 08:16:30 [ERROR] Devise: Unauthorized access attempt from 10.0.0.5
+2024-01-27 08:16:31 [WARNING] Devise: Multiple failed authentication attempts from 10.0.0.5

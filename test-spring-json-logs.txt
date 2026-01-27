@@ -1,0 +1,15 @@
+{"time":"2024-01-27T08:15:22Z","level":"INFO","logger":"com.example.api.Server","message":"Server started on port 8080"}
+{"time":"2024-01-27T08:15:23Z","level":"DEBUG","logger":"com.example.db.ConnectionPool","message":"Initializing connection pool with 10 connections"}
+{"time":"2024-01-27T08:15:24Z","level":"INFO","logger":"com.example.api.ApiGateway","message":"API Gateway initialized successfully"}
+{"time":"2024-01-27T08:15:25Z","level":"INFO","logger":"com.example.api.RequestHandler","message":"Request received: GET /users/123","method":"GET","path":"/users/123"}
+{"time":"2024-01-27T08:15:26Z","level":"DEBUG","logger":"com.example.db.QueryExecutor","message":"Executing query: SELECT * FROM users WHERE id = ?","queryTime":125}
+{"time":"2024-01-27T08:15:27Z","level":"INFO","logger":"com.example.api.ResponseHandler","message":"Response sent: 200 OK","statusCode":200}
+{"time":"2024-01-27T08:15:35Z","level":"WARN","logger":"com.example.db.QueryExecutor","message":"Slow query detected: took 2500ms","queryTime":2500,"threshold":1000}
+{"time":"2024-01-27T08:15:37Z","level":"ERROR","logger":"com.example.api.ApiServer","message":"Failed to process request: Connection timeout","errorCode":"TIMEOUT_ERROR"}
+{"time":"2024-01-27T08:15:39Z","level":"WARN","logger":"com.example.api.Retry","message":"Retry attempt 1 of 3","requestId":"req-12346"}
+{"time":"2024-01-27T08:16:01Z","level":"ERROR","logger":"com.example.db.ConnectionPool","message":"Connection pool exhausted: 10/10 connections"}
+{"time":"2024-01-27T08:16:02Z","level":"WARN","logger":"com.example.db.ConnectionPool","message":"Waiting for available connections: 5 requests queued","queueSize":5}
+{"time":"2024-01-27T08:16:12Z","level":"ERROR","logger":"com.example.cache.CacheManager","message":"Out of memory error: Unable to store new cache entries","usedMemory":"2048MB"}
+{"time":"2024-01-27T08:16:20Z","level":"WARN","logger":"com.example.monitoring.Metrics","message":"High request load: 5000 req/s","currentLoad":5000}
+{"time":"2024-01-27T08:16:30Z","level":"ERROR","logger":"com.example.security.AuthManager","message":"Unauthorized access attempt from 10.0.0.5","sourceIP":"10.0.0.5"}
+{"time":"2024-01-27T08:16:31Z","level":"WARN","logger":"com.example.security.AuthManager","message":"Multiple failed login attempts detected: 5 attempts from 10.0.0.5","failedAttempts":5}

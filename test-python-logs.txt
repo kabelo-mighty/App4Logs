@@ -1,0 +1,28 @@
+INFO:app.main:Server started on port 3000
+DEBUG:app.database:Connecting to database: localhost:5432
+INFO:app.database:Database connection established
+INFO:app.handlers:Request received: GET /api/users
+DEBUG:app.handlers:Query parameters: limit=10, offset=0
+INFO:app.database:Query executed: SELECT * FROM users LIMIT 10
+INFO:app.handlers:Response sent: 200 OK with 10 users
+WARNING:app.cache:Cache miss for key: users_list_0_10
+INFO:app.cache:Cache entry created: users_list_0_10
+WARNING:app.database:Query timeout: took 2500ms for SELECT * FROM orders
+DEBUG:app.performance:Query performance metrics: avg_time=450ms, max_time=2500ms
+ERROR:app.api:Failed to process request: Connection reset
+ERROR:app.handlers:Traceback: Connection reset by peer at line 42
+WARNING:app.retry:Attempting retry 1/3
+INFO:app.retry:Retry successful
+ERROR:app.database:Connection pool exhausted: 10/10 connections
+WARNING:app.database:Queue size: 5 pending requests
+INFO:app.database:Connection pool size increased to 15
+WARNING:app.memory:Memory usage at 82%
+ERROR:app.memory:Out of memory error: No space in heap
+DEBUG:app.gc:Running garbage collection
+INFO:app.gc:Garbage collection completed, freed 250MB
+WARNING:app.monitoring:High load detected: 4500 req/s
+DEBUG:app.monitoring:CPU usage: 78%, Memory: 85%
+INFO:app.monitoring:System health: OK
+ERROR:app.security:Unauthorized access from 10.0.0.5
+WARNING:app.security:Failed login attempts: 5 from 10.0.0.5
+INFO:app.security:IP 10.0.0.5 added to blocklist

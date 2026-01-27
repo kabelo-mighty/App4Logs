@@ -1,0 +1,112 @@
+[
+  {
+    "timestamp": "2024-01-27T08:15:22Z",
+    "level": "INFO",
+    "source": "API Gateway",
+    "message": "Request received from client 192.168.1.100",
+    "requestId": "req-12345",
+    "responseTime": 245
+  },
+  {
+    "timestamp": "2024-01-27T08:15:23Z",
+    "level": "DEBUG",
+    "source": "Database",
+    "message": "Executing query: SELECT * FROM users WHERE active=1",
+    "queryTime": 125,
+    "rowsAffected": 1
+  },
+  {
+    "timestamp": "2024-01-27T08:15:24Z",
+    "level": "INFO",
+    "source": "Cache",
+    "message": "Cache hit for user_session_123",
+    "cacheKey": "user_session_123"
+  },
+  {
+    "timestamp": "2024-01-27T08:15:25Z",
+    "level": "WARNING",
+    "source": "Cache",
+    "message": "Cache expiration warning: 5 minutes remaining",
+    "ttl": 300,
+    "severity": "medium"
+  },
+  {
+    "timestamp": "2024-01-27T08:15:27Z",
+    "level": "INFO",
+    "source": "Authentication",
+    "message": "User authenticated successfully: john.doe@example.com",
+    "userId": "user-456",
+    "authMethod": "OAuth2"
+  },
+  {
+    "timestamp": "2024-01-27T08:15:35Z",
+    "level": "WARNING",
+    "source": "Database",
+    "message": "Slow query detected: took 2500ms",
+    "queryTime": 2500,
+    "threshold": 1000
+  },
+  {
+    "timestamp": "2024-01-27T08:15:37Z",
+    "level": "ERROR",
+    "source": "API Gateway",
+    "message": "Failed to process request: Connection timeout after 30s",
+    "errorCode": "TIMEOUT_ERROR",
+    "requestId": "req-12346"
+  },
+  {
+    "timestamp": "2024-01-27T08:15:39Z",
+    "level": "WARNING",
+    "source": "API Gateway",
+    "message": "Retry attempt 1 of 3",
+    "requestId": "req-12346",
+    "retryCount": 1
+  },
+  {
+    "timestamp": "2024-01-27T08:16:01Z",
+    "level": "ERROR",
+    "source": "Database",
+    "message": "Database connection pool exhausted",
+    "poolSize": 10,
+    "activeConnections": 10
+  },
+  {
+    "timestamp": "2024-01-27T08:16:02Z",
+    "level": "WARNING",
+    "source": "Database",
+    "message": "Waiting for available connections: 5 requests queued",
+    "queueSize": 5
+  },
+  {
+    "timestamp": "2024-01-27T08:16:12Z",
+    "level": "ERROR",
+    "source": "Cache",
+    "message": "Out of memory error: Unable to store new cache entries",
+    "errorCode": "OOM_ERROR",
+    "usedMemory": "2048MB"
+  },
+  {
+    "timestamp": "2024-01-27T08:16:20Z",
+    "level": "WARNING",
+    "source": "API Gateway",
+    "message": "High request load: 5000 req/s",
+    "currentLoad": 5000,
+    "threshold": 3000
+  },
+  {
+    "timestamp": "2024-01-27T08:16:30Z",
+    "level": "ERROR",
+    "source": "Security",
+    "message": "Unauthorized access attempt from 10.0.0.5",
+    "ipAddress": "10.0.0.5",
+    "severity": "high"
+  },
+  {
+    "timestamp": "2024-01-27T08:16:31Z",
+    "level": "WARNING",
+    "source": "Security",
+    "message": "Multiple failed login attempts detected",
+    "failedAttempts": 5,
+    "ipAddress": "10.0.0.5"
+  }
+]

@@ -1,0 +1,15 @@
+timestamp,level,source,message,details
+2024-01-27T08:15:22Z,INFO,API Gateway,Request received from client 192.168.1.100,requestId: req-12345
+2024-01-27T08:15:23Z,DEBUG,Database,Executing query: SELECT * FROM users WHERE active=1,queryTime: 125ms
+2024-01-27T08:15:24Z,INFO,Cache,Cache hit for user_session_123,cacheKey: user_session_123
+2024-01-27T08:15:25Z,WARNING,Cache,Cache expiration warning: 5 minutes remaining,ttl: 300
+2024-01-27T08:15:27Z,INFO,Authentication,User authenticated successfully: john.doe@example.com,userId: user-456
+2024-01-27T08:15:35Z,WARNING,Database,Slow query detected: took 2500ms,threshold: 1000ms
+2024-01-27T08:15:37Z,ERROR,API Gateway,Failed to process request: Connection timeout after 30s,errorCode: TIMEOUT_ERROR
+2024-01-27T08:15:39Z,WARNING,API Gateway,Retry attempt 1 of 3,retryCount: 1
+2024-01-27T08:16:01Z,ERROR,Database,Database connection pool exhausted,activeConnections: 10/10
+2024-01-27T08:16:02Z,WARNING,Database,Waiting for available connections: 5 requests queued,queueSize: 5
+2024-01-27T08:16:12Z,ERROR,Cache,Out of memory error: Unable to store new cache entries,usedMemory: 2048MB
+2024-01-27T08:16:20Z,WARNING,API Gateway,High request load: 5000 req/s,threshold: 3000 req/s
+2024-01-27T08:16:30Z,ERROR,Security,Unauthorized access attempt from 10.0.0.5,ipAddress: 10.0.0.5
+2024-01-27T08:16:31Z,WARNING,Security,Multiple failed login attempts detected,failedAttempts: 5

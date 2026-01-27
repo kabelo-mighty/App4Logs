@@ -1,0 +1,102 @@
+[
+  {
+    "timestamp": "2024-01-27T08:15:22Z",
+    "level": "info",
+    "name": "server",
+    "hostname": "prod-server-01",
+    "pid": 1234,
+    "message": "Express server started",
+    "port": 3000,
+    "environment": "production"
+  },
+  {
+    "timestamp": "2024-01-27T08:15:23Z",
+    "level": "debug",
+    "name": "database",
+    "hostname": "prod-server-01",
+    "pid": 1234,
+    "message": "Connecting to MongoDB",
+    "uri": "mongodb://localhost:27017/appdb"
+  },
+  {
+    "timestamp": "2024-01-27T08:15:24Z",
+    "level": "info",
+    "name": "database",
+    "hostname": "prod-server-01",
+    "pid": 1234,
+    "message": "Database connection established",
+    "status": "connected"
+  },
+  {
+    "timestamp": "2024-01-27T08:15:25Z",
+    "level": "info",
+    "name": "api",
+    "hostname": "prod-server-01",
+    "pid": 1234,
+    "message": "API request received",
+    "method": "GET",
+    "path": "/api/users",
+    "statusCode": 200,
+    "responseTime": 145
+  },
+  {
+    "timestamp": "2024-01-27T08:15:35Z",
+    "level": "warn",
+    "name": "database",
+    "hostname": "prod-server-01",
+    "pid": 1234,
+    "message": "Slow query detected",
+    "queryTime": 2500,
+    "threshold": 1000
+  },
+  {
+    "timestamp": "2024-01-27T08:15:37Z",
+    "level": "error",
+    "name": "api",
+    "hostname": "prod-server-01",
+    "pid": 1234,
+    "message": "Request processing failed",
+    "error": "ECONNREFUSED",
+    "code": "ERR_CONNECTION_REFUSED"
+  },
+  {
+    "timestamp": "2024-01-27T08:16:01Z",
+    "level": "error",
+    "name": "database",
+    "hostname": "prod-server-01",
+    "pid": 1234,
+    "message": "Connection pool exhausted",
+    "activeConnections": 10,
+    "maxConnections": 10
+  },
+  {
+    "timestamp": "2024-01-27T08:16:12Z",
+    "level": "error",
+    "name": "memory",
+    "hostname": "prod-server-01",
+    "pid": 1234,
+    "message": "Out of memory error",
+    "heapUsed": "2048MB",
+    "heapLimit": "2048MB"
+  },
+  {
+    "timestamp": "2024-01-27T08:16:20Z",
+    "level": "warn",
+    "name": "monitoring",
+    "hostname": "prod-server-01",
+    "pid": 1234,
+    "message": "High request load detected",
+    "requestsPerSecond": 5000,
+    "threshold": 3000
+  },
+  {
+    "timestamp": "2024-01-27T08:16:30Z",
+    "level": "error",
+    "name": "security",
+    "hostname": "prod-server-01",
+    "pid": 1234,
+    "message": "Unauthorized access attempt",
+    "sourceIP": "10.0.0.5",
+    "severity": "high"
+  }
+]

@@ -1,0 +1,28 @@
+[INFO] 2024-01-27T08:15:22 API Gateway Request received from client 192.168.1.100
+[DEBUG] 2024-01-27T08:15:23 Database Executing query: SELECT * FROM users WHERE active=1
+[INFO] 2024-01-27T08:15:24 Cache Cache hit for user_session_123
+[WARNING] 2024-01-27T08:15:25 Cache Cache expiration warning: 5 minutes remaining
+[DEBUG] 2024-01-27T08:15:26 Database Query completed in 125ms
+[INFO] 2024-01-27T08:15:27 Authentication User authenticated successfully: john.doe@example.com
+[DEBUG] 2024-01-27T08:15:28 API Gateway Response ready: 200 OK
+[INFO] 2024-01-27T08:15:29 API Gateway Response sent to client 192.168.1.100
+[WARNING] 2024-01-27T08:15:35 Database Slow query detected: took 2500ms
+[ERROR] 2024-01-27T08:15:37 API Gateway Failed to process request: Connection timeout after 30s
+[DEBUG] 2024-01-27T08:15:38 Error Handler Attempting automatic retry
+[WARNING] 2024-01-27T08:15:39 API Gateway Retry attempt 1 of 3
+[INFO] 2024-01-27T08:15:42 API Gateway Retry successful: Request completed
+[ERROR] 2024-01-27T08:16:01 Database Database connection pool exhausted
+[WARNING] 2024-01-27T08:16:02 Database Waiting for available connections: 5 requests queued
+[INFO] 2024-01-27T08:16:05 Database New connection established
+[DEBUG] 2024-01-27T08:16:06 Authentication Session validation in progress
+[INFO] 2024-01-27T08:16:08 Authentication Session valid for user jane.smith@example.com
+[WARNING] 2024-01-27T08:16:10 Cache Memory usage at 85%
+[ERROR] 2024-01-27T08:16:12 Cache Out of memory error: Unable to store new cache entries
+[DEBUG] 2024-01-27T08:16:13 Cache Cleaning expired entries
+[INFO] 2024-01-27T08:16:15 Cache Cleanup completed: freed 250MB
+[WARNING] 2024-01-27T08:16:20 API Gateway High request load: 5000 req/s
+[DEBUG] 2024-01-27T08:16:21 System Load Average: 4.2, 3.8, 3.5
+[INFO] 2024-01-27T08:16:25 System All systems operational
+[ERROR] 2024-01-27T08:16:30 Security Unauthorized access attempt from 10.0.0.5
+[WARNING] 2024-01-27T08:16:31 Security Multiple failed login attempts detected
+[INFO] 2024-01-27T08:16:32 Security IP address added to watchlist

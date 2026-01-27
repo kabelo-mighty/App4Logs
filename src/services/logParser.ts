@@ -97,14 +97,22 @@ export class LogParser {
     const lines = content.split('\n')
     const logs: LogEntry[] = []
 
-    // Common log patterns
+    // Framework-specific and common log patterns
     const patterns = [
-      // Pattern: [LEVEL] TIMESTAMP MESSAGE
-      /^\[(\w+)\]\s+(\d{4}-\d{2}-\d{2}[T\s]\d{2}:\d{2}:\d{2})\s+(.+)$/,
-      // Pattern: TIMESTAMP [LEVEL] MESSAGE
+      // Java Log4j: 2024-01-27 08:15:22,123 [ThreadName] LEVEL ClassName - Message
+      /^(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2},\d+)\s+\[([^\]]+)\]\s+(\w+)\s+([^\s]+)\s*-\s*(.+)$/,
+      // Java SLF4j: TIMESTAMP [ThreadName] LEVEL ClassName Message
+      /^(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2})\s+\[([^\]]+)\]\s+(\w+)\s+([^\s]+)\s+(.+)$/,
+      // Node.js/Express Morgan: GET /path 200 123 - 45ms
+      /^(\w+)\s+(\/\S*)\s+(\d{3})\s+(\d+)\s+-\s+(.+)$/,
+      // [LEVEL] TIMESTAMP SOURCE MESSAGE
+      /^\[(\w+)\]\s+(\d{4}-\d{2}-\d{2}[T\s]\d{2}:\d{2}:\d{2})\s+([^\s]+)\s+(.+)$/,
+      // TIMESTAMP [LEVEL] MESSAGE
       /^(\d{4}-\d{2}-\d{2}[T\s]\d{2}:\d{2}:\d{2})\s+\[(\w+)\]\s+(.+)$/,
-      // Pattern: TIMESTAMP LEVEL MESSAGE
-      /^(\d{4}-\d{2}-\d{2}[T\s]\d{2}:\d{2}:\d{2})\s+(ERROR|WARNING|INFO|DEBUG|TRACE)\s+(.+)$/,
+      // TIMESTAMP LEVEL SOURCE MESSAGE
+      /^(\d{4}-\d{2}-\d{2}[T\s]\d{2}:\d{2}:\d{2})\s+(ERROR|WARNING|INFO|DEBUG|TRACE)\s+([^\s]+)\s+(.+)$/,
+      // Python logging: LEVEL:SOURCE:MESSAGE (with optional timestamp prefix)
+      /^(\w+):([^\s:]+):(.+)$/,
     ]
 
     for (let i = 0; i < lines.length; i++) {
@@ -112,25 +120,120 @@ export class LogParser {
       if (!line.trim()) continue
 
       let matched = false
-      for (const pattern of patterns) {
-        const match = line.match(pattern)
-        if (match) {
-          const [, first, second, third] = match
-          const level = this.normalizeLevel(
-            /^\d{4}/.test(first) ? second : first
-          )
-          const timestamp = /^\d{4}/.test(first) ? first : second
-          const message = /^\d{4}/.test(first) ? third : match[3]
 
+      // Java Log4j pattern
+      let match = line.match(patterns[0])
+      if (match) {
+        const [, timestamp, thread, level, source, message] = match
+        logs.push({
+          id: `log-${logs.length}`,
+          timestamp: this.parseTimestamp(timestamp),
+          level: this.normalizeLevel(level),
+          source: source || thread,
+          message,
+          metadata: { thread, className: source }
+        })
+        matched = true
+      }
+
+      // Java SLF4j pattern
+      if (!matched) {
+        match = line.match(patterns[1])
+        if (match) {
+          const [, timestamp, thread, level, source, message] = match
           logs.push({
             id: `log-${logs.length}`,
-            timestamp: timestamp || new Date().toISOString(),
-            level,
-            source: 'System',
-            message: message || line,
+            timestamp: this.parseTimestamp(timestamp),
+            level: this.normalizeLevel(level),
+            source: source || thread,
+            message,
+            metadata: { thread, className: source }
           })
           matched = true
-          break
+        }
+      }
+
+      // Express/Morgan HTTP pattern
+      if (!matched) {
+        match = line.match(patterns[2])
+        if (match) {
+          const [, method, path, statusCode, responseTime, message] = match
+          logs.push({
+            id: `log-${logs.length}`,
+            timestamp: new Date().toISOString(),
+            level: this.getHttpLogLevel(parseInt(statusCode)),
+            source: 'Express HTTP',
+            message: `${method} ${path} ${statusCode} ${responseTime}`,
+            metadata: { method, path, statusCode, responseTime, details: message }
+          })
+          matched = true
+        }
+      }
+
+      // [LEVEL] TIMESTAMP SOURCE MESSAGE
+      if (!matched) {
+        match = line.match(patterns[3])
+        if (match) {
+          const [, level, timestamp, source, message] = match
+          logs.push({
+            id: `log-${logs.length}`,
+            timestamp: this.parseTimestamp(timestamp),
+            level: this.normalizeLevel(level),
+            source,
+            message,
+          })
+          matched = true
+        }
+      }
+
+      // TIMESTAMP [LEVEL] MESSAGE
+      if (!matched) {
+        match = line.match(patterns[4])
+        if (match) {
+          const [, timestamp, level, message] = match
+          logs.push({
+            id: `log-${logs.length}`,
+            timestamp: this.parseTimestamp(timestamp),
+            level: this.normalizeLevel(level),
+            source: 'System',
+            message,
+          })
+          matched = true
+        }
+      }
+
+      // TIMESTAMP LEVEL SOURCE MESSAGE
+      if (!matched) {
+        match = line.match(patterns[5])
+        if (match) {
+          const [, timestamp, level, source, message] = match
+          logs.push({
+            id: `log-${logs.length}`,
+            timestamp: this.parseTimestamp(timestamp),
+            level: this.normalizeLevel(level),
+            source,
+            message,
+          })
+          matched = true
+        }
+      }
+
+      // Python logging pattern
+      if (!matched) {
+        match = line.match(patterns[6])
+        if (match) {
+          const [, level, source, message] = match
+          // Only match if it looks like a valid log level
+          if (/^(DEBUG|INFO|WARNING|ERROR|CRITICAL)$/i.test(level)) {
+            logs.push({
+              id: `log-${logs.length}`,
+              timestamp: new Date().toISOString(),
+              level: this.normalizeLevel(level),
+              source,
+              message,
+            })
+            matched = true
+          }
         }
       }
 
@@ -146,6 +249,36 @@ export class LogParser {
     }
 
     return logs
+  }
+
+  private static parseTimestamp(timestamp: string): string {
+    try {
+      // Handle Java format with comma: 2024-01-27 08:15:22,123
+      const javaFormat = timestamp.replace(',', '.')
+      const date = new Date(javaFormat)
+      if (!isNaN(date.getTime())) {
+        return date.toISOString()
+      }
+    } catch (e) {
+      // Fall through
+    }
+
+    try {
+      const date = new Date(timestamp)
+      if (!isNaN(date.getTime())) {
+        return date.toISOString()
+      }
+    } catch (e) {
+      // Fall through
+    }
+
+    return new Date().toISOString()
+  }
+
+  private static getHttpLogLevel(statusCode: number): LogLevel {
+    if (statusCode >= 500) return 'ERROR'
+    if (statusCode >= 400) return 'WARNING'
+    return 'INFO'
   }
 
   private static normalizeLogEntry(log: Record<string, unknown>, idx: number): LogEntry {

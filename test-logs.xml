@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<logs>
+  <log>
+    <timestamp>2024-01-27T08:15:22Z</timestamp>
+    <level>INFO</level>
+    <source>API Gateway</source>
+    <message>Request received from client 192.168.1.100</message>
+    <requestId>req-12345</requestId>
+    <responseTime>245</responseTime>
+  </log>
+  <log>
+    <timestamp>2024-01-27T08:15:23Z</timestamp>
+    <level>DEBUG</level>
+    <source>Database</source>
+    <message>Executing query: SELECT * FROM users WHERE active=1</message>
+    <queryTime>125</queryTime>
+    <rowsAffected>1</rowsAffected>
+  </log>
+  <log>
+    <timestamp>2024-01-27T08:15:24Z</timestamp>
+    <level>INFO</level>
+    <source>Cache</source>
+    <message>Cache hit for user_session_123</message>
+    <cacheKey>user_session_123</cacheKey>
+  </log>
+  <log>
+    <timestamp>2024-01-27T08:15:25Z</timestamp>
+    <level>WARNING</level>
+    <source>Cache</source>
+    <message>Cache expiration warning: 5 minutes remaining</message>
+    <ttl>300</ttl>
+    <severity>medium</severity>
+  </log>
+  <log>
+    <timestamp>2024-01-27T08:15:27Z</timestamp>
+    <level>INFO</level>
+    <source>Authentication</source>
+    <message>User authenticated successfully: john.doe@example.com</message>
+    <userId>user-456</userId>
+    <authMethod>OAuth2</authMethod>
+  </log>
+  <log>
+    <timestamp>2024-01-27T08:15:35Z</timestamp>
+    <level>WARNING</level>
+    <source>Database</source>
+    <message>Slow query detected: took 2500ms</message>
+    <queryTime>2500</queryTime>
+    <threshold>1000</threshold>
+  </log>
+  <log>
+    <timestamp>2024-01-27T08:15:37Z</timestamp>
+    <level>ERROR</level>
+    <source>API Gateway</source>
+    <message>Failed to process request: Connection timeout after 30s</message>
+    <errorCode>TIMEOUT_ERROR</errorCode>
+    <requestId>req-12346</requestId>
+  </log>
+  <log>
+    <timestamp>2024-01-27T08:15:39Z</timestamp>
+    <level>WARNING</level>
+    <source>API Gateway</source>
+    <message>Retry attempt 1 of 3</message>
+    <requestId>req-12346</requestId>
+    <retryCount>1</retryCount>
+  </log>
+  <log>
+    <timestamp>2024-01-27T08:16:01Z</timestamp>
+    <level>ERROR</level>
+    <source>Database</source>
+    <message>Database connection pool exhausted</message>
+    <poolSize>10</poolSize>
+    <activeConnections>10</activeConnections>
+  </log>
+  <log>
+    <timestamp>2024-01-27T08:16:02Z</timestamp>
+    <level>WARNING</level>
+    <source>Database</source>
+    <message>Waiting for available connections: 5 requests queued</message>
+    <queueSize>5</queueSize>
+  </log>
+  <log>
+    <timestamp>2024-01-27T08:16:12Z</timestamp>
+    <level>ERROR</level>
+    <source>Cache</source>
+    <message>Out of memory error: Unable to store new cache entries</message>
+    <errorCode>OOM_ERROR</errorCode>
+    <usedMemory>2048MB</usedMemory>
+  </log>
+  <log>
+    <timestamp>2024-01-27T08:16:20Z</timestamp>
+    <level>WARNING</level>
+    <source>API Gateway</source>
+    <message>High request load: 5000 req/s</message>
+    <currentLoad>5000</currentLoad>
+    <threshold>3000</threshold>
+  </log>
+  <log>
+    <timestamp>2024-01-27T08:16:30Z</timestamp>
+    <level>ERROR</level>
+    <source>Security</source>
+    <message>Unauthorized access attempt from 10.0.0.5</message>
+    <ipAddress>10.0.0.5</ipAddress>
+    <severity>high</severity>
+  </log>
+  <log>
+    <timestamp>2024-01-27T08:16:31Z</timestamp>
+    <level>WARNING</level>
+    <source>Security</source>
+    <message>Multiple failed login attempts detected</message>
+    <failedAttempts>5</failedAttempts>
+    <ipAddress>10.0.0.5</ipAddress>
+  </log>
+</logs>
