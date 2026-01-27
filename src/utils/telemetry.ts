@@ -1,46 +1,140 @@
-// Sentry initialization (optional)
+import * as Sentry from '@sentry/react'
+import LogRocket from 'logrocket'
+
+// Get environment variables safely
+const getSentryDsn = () => import.meta.env.VITE_SENTRY_DSN || ''
+const getLogRocketId = () => import.meta.env.VITE_LOGROCKET_ID || ''
+const getEnvironment = () => import.meta.env.MODE || 'development'
+
+// Store session URL globally
+let sessionUrl: string | null = null
+
+// Initialize error tracking services
 export const initErrorTracking = () => {
-  // Initialize Sentry or similar service
-  // Example: Sentry.init({ dsn: process.env.REACT_APP_SENTRY_DSN })
+  const sentryDsn = getSentryDsn()
+  const logRocketId = getLogRocketId()
+  const environment = getEnvironment()
+
+  // Initialize Sentry
+  if (sentryDsn) {
+    Sentry.init({
+      dsn: sentryDsn,
+      environment,
+      tracesSampleRate: 1.0,
+      integrations: [
+        new Sentry.Replay({
+          maskAllText: true,
+          blockAllMedia: true,
+        }),
+      ],
+      replaysSessionSampleRate: 0.1,
+      replaysOnErrorSampleRate: 1.0,
+    })
+  }
+
+  // Initialize LogRocket
+  if (logRocketId) {
+    LogRocket.init(logRocketId)
+    
+    // Get session URL via callback
+    LogRocket.getSessionURL((url) => {
+      sessionUrl = url
+    })
+    
+    // Identify user if available
+    if (typeof window !== 'undefined' && window.localStorage) {
+      const userId = localStorage.getItem('user_id')
+      if (userId) {
+        LogRocket.identify(userId, {
+          name: localStorage.getItem('user_name') || 'Anonymous',
+          email: localStorage.getItem('user_email') || 'unknown@example.com',
+        })
+      }
+    }
+  }
+
+  console.log('[Telemetry] Error tracking initialized', {
+    sentry: !!sentryDsn,
+    logRocket: !!logRocketId,
+    environment,
+  })
 }
 
-// Analytics tracking
+// Track analytics events
 export const trackEvent = (eventName: string, properties?: Record<string, unknown>) => {
-  console.log(`[Analytics] ${eventName}`, properties)
+  const timestamp = new Date().toISOString()
   
-  // Send to analytics service
-  // Example: gtag('event', eventName, properties)
+  console.log(`[Analytics] ${eventName}`, { ...properties, timestamp })
+  
+  // Send to Sentry
+  if (Sentry.isInitialized()) {
+    Sentry.captureMessage(`Event: ${eventName}`, 'info')
+  }
+
+  // Send to LogRocket
+  const logRocketId = getLogRocketId()
+  if (logRocketId && properties) {
+    const sanitized: Record<string, string | number | boolean> = {}
+    for (const [key, value] of Object.entries(properties)) {
+      if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+        sanitized[key] = value
+      }
+    }
+    LogRocket.track(eventName, sanitized)
+  }
 }
 
-// Performance monitoring
-export const trackPerformance = (metricName: string, value: number) => {
-  console.log(`[Performance] ${metricName}: ${value}ms`)
+// Enhanced error reporting with context
+export const reportError = (error: Error | string, context?: Record<string, unknown>) => {
+  const errorMessage = typeof error === 'string' ? error : error.message
+  const errorStack = typeof error === 'string' ? undefined : error.stack
   
-  // Send to monitoring service
-  // Example: Sentry.captureMessage(...)
+  const fullContext = {
+    ...context,
+    timestamp: new Date().toISOString(),
+    userAgent: navigator.userAgent,
+    url: window.location.href,
+  }
+
+  console.error('[Error Report]', {
+    message: errorMessage,
+    stack: errorStack,
+    context: fullContext,
+  })
+
+  // Send to Sentry with full context
+  if (Sentry.isInitialized()) {
+    if (typeof error === 'string') {
+      Sentry.captureMessage(error, 'error')
+    } else {
+      Sentry.captureException(error)
+    }
+    Sentry.setContext('error_context', fullContext as Record<string, unknown>)
+  }
+
+  // Send to LogRocket
+  const logRocketId = getLogRocketId()
+  if (logRocketId) {
+    LogRocket.captureException(typeof error === 'string' ? new Error(error) : error)
+  }
+
+  // Send to custom API endpoint if available
+  const apiEndpoint = import.meta.env.VITE_API_ERROR_ENDPOINT
+  if (apiEndpoint) {
+    fetch(apiEndpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: errorMessage,
+        stack: errorStack,
+        context: fullContext,
+        severity: 'error',
+      }),
+    }).catch(err => console.error('Failed to report error to API:', err))
+  }
 }
 
-// Error reporting
-export const reportError = (error: Error, context?: Record<string, unknown>) => {
-  console.error('[Error Report]', error, context)
-  
-  // Send to error tracking service
-  // Example: Sentry.captureException(error, { extra: context })
-  
-  // You could also send to a custom API endpoint
-  fetch('/api/errors', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      message: error.message,
-      stack: error.stack,
-      context,
-      timestamp: new Date().toISOString(),
-    }),
-  }).catch(err => console.error('Failed to report error:', err))
-}
-
-// Log analytics
+// User action logging
 export const logUserAction = (action: string, details?: Record<string, unknown>) => {
   trackEvent(`user_${action}`, {
     timestamp: new Date().toISOString(),
@@ -48,10 +142,39 @@ export const logUserAction = (action: string, details?: Record<string, unknown>)
   })
 }
 
-// Performance marks
+// Performance monitoring
+export const trackPerformance = (metricName: string, value: number, metadata?: Record<string, unknown>) => {
+  console.log(`[Performance] ${metricName}: ${value}ms`, metadata)
+
+  if (Sentry.isInitialized()) {
+    Sentry.captureMessage(`Performance: ${metricName} = ${value}ms`, 'info')
+  }
+
+  const logRocketId = getLogRocketId()
+  if (logRocketId && metadata) {
+    const sanitized: Record<string, string | number | boolean> = {}
+    for (const [key, val] of Object.entries(metadata)) {
+      if (typeof val === 'string' || typeof val === 'number' || typeof val === 'boolean') {
+        sanitized[key] = val
+      }
+    }
+    LogRocket.track('performance_metric', {
+      metric: metricName,
+      value,
+      unit: 'ms',
+      ...sanitized,
+    })
+  }
+}
+
+// Performance marks and measures
 export const markPerformance = (label: string) => {
   if (typeof window !== 'undefined' && window.performance) {
-    performance.mark(label)
+    try {
+      performance.mark(label)
+    } catch (e) {
+      console.error(`Performance mark "${label}" failed:`, e)
+    }
   }
 }
 
@@ -61,10 +184,68 @@ export const measurePerformance = (label: string, startMark: string, endMark: st
       performance.measure(label, startMark, endMark)
       const measure = performance.getEntriesByName(label)[0]
       if (measure) {
-        trackPerformance(label, measure.duration)
+        trackPerformance(label, measure.duration, {
+          type: 'user_timing',
+        })
       }
     } catch (e) {
       console.error('Performance measurement failed:', e)
+      reportError(e as Error, { context: 'performance_measurement' })
     }
   }
 }
+
+// Warning tracking
+export const trackWarning = (message: string, data?: Record<string, unknown>) => {
+  console.warn(`[Warning] ${message}`, data)
+
+  if (Sentry.isInitialized()) {
+    Sentry.captureMessage(message, 'warning')
+    if (data) {
+      Sentry.setContext('warning_data', data)
+    }
+  }
+}
+
+// Set user context for better tracking
+export const setUserContext = (userId: string, userData?: Record<string, unknown>) => {
+  if (Sentry.isInitialized()) {
+    const sanitized: Record<string, string | number | boolean> = { id: userId }
+    if (userData) {
+      for (const [key, val] of Object.entries(userData)) {
+        if (typeof val === 'string' || typeof val === 'number' || typeof val === 'boolean') {
+          sanitized[key] = val
+        }
+      }
+    }
+    Sentry.setUser(sanitized)
+  }
+
+  const logRocketId = getLogRocketId()
+  if (logRocketId) {
+    const sanitized: Record<string, string | number | boolean> = {}
+    if (userData) {
+      for (const [key, val] of Object.entries(userData)) {
+        if (typeof val === 'string' || typeof val === 'number' || typeof val === 'boolean') {
+          sanitized[key] = val
+        }
+      }
+    }
+    LogRocket.identify(userId, sanitized)
+  }
+
+  // Store in localStorage for persistence
+  localStorage.setItem('user_id', userId)
+  if (userData?.name) {
+    localStorage.setItem('user_name', String(userData.name))
+  }
+  if (userData?.email) {
+    localStorage.setItem('user_email', String(userData.email))
+  }
+}
+
+// Get LogRocket session URL if available
+export const getSessionUrl = () => {
+  return sessionUrl
+}
+

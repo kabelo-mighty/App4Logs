@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback } from 'react'
+import { useEffect, useRef, useCallback, useState } from 'react'
 
 export interface StorageData {
   filters: {
@@ -89,7 +89,7 @@ export const useFileHistory = () => {
 }
 
 export const useLocalStorage = <T,>(key: string, initialValue: T) => {
-  const [storedValue, setStoredValue] = React.useState<T>(() => {
+  const [storedValue, setStoredValue] = useState<T>(() => {
     try {
       const item = typeof window !== 'undefined' ? window.localStorage.getItem(key) : null
       return item ? JSON.parse(item) : initialValue

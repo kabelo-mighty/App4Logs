@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react'
+import React, { useState, useCallback, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { LogEntry } from './types'
 import { FileUpload } from './components/FileUpload'
@@ -7,22 +7,58 @@ import { Statistics } from './components/Statistics'
 import { LogViewer } from './components/LogViewer'
 import { ExportButtons } from './components/ExportButtons'
 import { LanguageSwitcher } from './components/LanguageSwitcher'
+import { ErrorBoundary } from './components/ErrorBoundary'
+import { initErrorTracking, logUserAction, markPerformance, measurePerformance } from './utils/telemetry'
 
-function App() {
+function AppContent() {
   const { t } = useTranslation()
   const [logs, setLogs] = useState<LogEntry[]>([])
   const [filteredLogs, setFilteredLogs] = useState<LogEntry[]>([])
   const [hasLoaded, setHasLoaded] = useState(false)
 
+  // Initialize error tracking on mount
+  useEffect(() => {
+    initErrorTracking()
+    markPerformance('app-mount')
+    logUserAction('app_loaded')
+
+    return () => {
+      measurePerformance('app-session', 'app-mount', 'app-unmount')
+    }
+  }, [])
+
   const handleLogsLoaded = useCallback((newLogs: LogEntry[]) => {
-    setLogs(newLogs)
-    setFilteredLogs(newLogs)
-    setHasLoaded(true)
+    try {
+      markPerformance('logs-load-start')
+      setLogs(newLogs)
+      setFilteredLogs(newLogs)
+      setHasLoaded(true)
+      logUserAction('logs_uploaded', {
+        count: newLogs.length,
+      })
+      measurePerformance('logs-load', 'logs-load-start', 'logs-load-end')
+    } catch (error) {
+      logUserAction('logs_upload_failed', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+      })
+      throw error
+    }
   }, [])
 
   const handleFilterChange = useCallback((filtered: LogEntry[]) => {
-    setFilteredLogs(filtered)
-  }, [])
+    try {
+      setFilteredLogs(filtered)
+      logUserAction('filters_applied', {
+        resultCount: filtered.length,
+        totalCount: logs.length,
+      })
+    } catch (error) {
+      logUserAction('filter_failed', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+      })
+      throw error
+    }
+  }, [logs.length])
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
@@ -142,6 +178,15 @@ function App() {
         </div>
       </footer>
     </div>
+  )
+}
+
+// Wrap the main app component with ErrorBoundary
+function App() {
+  return (
+    <ErrorBoundary>
+      <AppContent />
+    </ErrorBoundary>
   )
 }
 

@@ -1,7 +1,10 @@
-import React, { useState } from 'react'
+import React, { useState, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { LogParser } from '../services/logParser'
 import { LogEntry } from '../types'
+import { ErrorRecovery, useErrorRecovery } from './ErrorRecovery'
+import { reportError, trackEvent, logUserAction } from '../utils/telemetry'
+import { validateFile } from '../utils/validation'
 
 interface FileUploadProps {
   onLogsLoaded: (logs: LogEntry[]) => void
@@ -10,10 +13,11 @@ interface FileUploadProps {
 export const FileUpload: React.FC<FileUploadProps> = ({ onLogsLoaded }) => {
   const { t } = useTranslation()
   const [isDragging, setIsDragging] = useState(false)
-  const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [fileName, setFileName] = useState<string | null>(null)
   const [uploadProgress, setUploadProgress] = useState(0)
+  const { error, showError, clearError } = useErrorRecovery()
+  const [lastFile, setLastFile] = useState<File | null>(null)
 
   const handleDragEnter = (e: React.DragEvent) => {
     e.preventDefault()
@@ -36,36 +40,67 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onLogsLoaded }) => {
     }
   }
 
-  const processFiles = (files: FileList) => {
-    setError(null)
+  const processFiles = useCallback((files: FileList) => {
+    clearError()
     setUploadProgress(0)
 
     if (files.length === 0) return
 
     const file = files[0]
     setFileName(file.name)
+    setLastFile(file)
     setIsLoading(true)
-    const reader = new FileReader()
 
-    const progressInterval = setInterval(() => {
+    // Validate file first
+    try {
+      validateFile(file)
+    } catch (err) {
+      const validationError = err instanceof Error ? err.message : 'Invalid file'
+      showError(validationError, 'upload')
+      setIsLoading(false)
+      logUserAction('file_validation_failed', {
+        fileName: file.name,
+        error: validationError,
+      })
+      return
+    }
+
+    const reader = new FileReader()
+    let progressInterval: ReturnType<typeof setInterval>
+
+    const progressInterval2 = setInterval(() => {
       setUploadProgress(prev => Math.min(prev + 30, 90))
     }, 100)
+    progressInterval = progressInterval2
 
     reader.onload = (event) => {
       clearInterval(progressInterval)
       try {
         const content = event.target?.result as string
         setUploadProgress(95)
+
+        trackEvent('log_parsing_started', {
+          fileName: file.name,
+          fileSize: file.size,
+        })
+
         const logs = LogParser.parseFile(content, file.name)
 
         if (logs.length === 0) {
-          setError('No valid logs found in file')
+          const emptyError = 'No valid logs found in file. Please check the file format.'
+          showError(emptyError, 'parsing')
           setIsLoading(false)
           setUploadProgress(0)
+          logUserAction('no_logs_found', { fileName: file.name })
           return
         }
 
         setUploadProgress(100)
+        logUserAction('file_parsed_successfully', {
+          fileName: file.name,
+          logCount: logs.length,
+        })
+
         setTimeout(() => {
           onLogsLoaded(logs)
           setIsLoading(false)
@@ -74,24 +109,80 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onLogsLoaded }) => {
         }, 300)
       } catch (err) {
         clearInterval(progressInterval)
-        setError(`Error reading file: ${err instanceof Error ? err.message : 'Unknown error'}`)
+        const errorMsg = err instanceof Error ? err.message : 'Unknown parsing error'
+        showError(
+          `Failed to parse file: ${errorMsg}`,
+          'parsing'
+        )
+        reportError(err as Error, {
+          context: 'file_parsing',
+          fileName: file.name,
+        })
         setIsLoading(false)
         setUploadProgress(0)
+        logUserAction('file_parsing_failed', {
+          fileName: file.name,
+          error: errorMsg,
+        })
       }
     }
 
     reader.onerror = () => {
       clearInterval(progressInterval)
-      setError('Failed to read file')
+      const readError = 'Failed to read file. Please try again.'
+      showError(readError, 'upload')
       setIsLoading(false)
       setUploadProgress(0)
+      reportError(new Error('FileReader error'), {
+        context: 'file_read',
+        fileName: file.name,
+      })
+      logUserAction('file_read_failed', { fileName: file.name })
     }
 
-    reader.readAsText(file)
-  }
+    reader.onabort = () => {
+      clearInterval(progressInterval)
+      const abortError = 'File upload was cancelled.'
+      showError(abortError, 'upload')
+      setIsLoading(false)
+      setUploadProgress(0)
+      logUserAction('file_upload_cancelled', { fileName: file.name })
+    }
+
+    try {
+      reader.readAsText(file)
+    } catch (err) {
+      clearInterval(progressInterval)
+      const readError = 'Error reading file. This file type may not be supported.'
+      showError(readError, 'upload')
+      reportError(err as Error, {
+        context: 'file_read_error',
+        fileName: file.name,
+      })
+      setIsLoading(false)
+    }
+  }, [showError, clearError, onLogsLoaded])
+
+  const handleRetryUpload = useCallback(async () => {
+    if (lastFile) {
+      const dt = new DataTransfer()
+      dt.items.add(lastFile)
+      processFiles(dt.files)
+    }
+  }, [lastFile, processFiles])
 
   return (
     <div className="w-full">
+      {/* Error Recovery UI */}
+      {error && (
+        <ErrorRecovery
+          error={error.message}
+          context={error.context}
+          onRetry={error.context === 'upload' ? handleRetryUpload : undefined}
+          onDismiss={clearError}
+        />
+      )}
+
       <div
         onDragEnter={handleDragEnter}
         onDragLeave={handleDragLeave}
@@ -145,17 +236,6 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onLogsLoaded }) => {
           </>
         )}
       </div>
-
-      {error && (
-        <div className="mt-4 p-4 bg-red-50 border-l-4 border-red-500 rounded-md animate-pulse">
-          <div className="flex items-center">
-            <svg className="h-5 w-5 text-red-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-            </svg>
-            <p className="text-sm font-medium text-red-800">{error}</p>
-          </div>
-        </div>
-      )}
     </div>
   )
 }
