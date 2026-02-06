@@ -22,6 +22,7 @@ function AppContent() {
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [showUploadModal, setShowUploadModal] = useState(false)
   const [showRealtimeModal, setShowRealtimeModal] = useState(false)
+  const [searchKeyword, setSearchKeyword] = useState('')
   const { announcement, announce } = useAriaLiveRegion()
   const { handleSkipClick } = useSkipLink('main-content')
 
@@ -279,7 +280,7 @@ function AppContent() {
                   {/* Sidebar - Filters */}
                   <div className="lg:col-span-1">
                     <div className="bg-zinc-800 border border-zinc-700 rounded-lg p-6 shadow-lg">
-                      <FilterPanel logs={logs} onFilterChange={handleFilterChange} />
+                      <FilterPanel logs={logs} onFilterChange={handleFilterChange} onKeywordChange={setSearchKeyword} />
                     </div>
                   </div>
 
@@ -305,7 +306,7 @@ function AppContent() {
                         </div>
                       </div>
                       <div className="p-6 bg-zinc-900">
-                        <PaginatedLogViewer logs={filteredLogs} itemsPerPage={50} />
+                        <PaginatedLogViewer logs={filteredLogs} itemsPerPage={50} searchKeyword={searchKeyword} />
                       </div>
                     </div>
 

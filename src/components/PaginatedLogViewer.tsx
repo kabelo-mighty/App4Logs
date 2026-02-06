@@ -9,6 +9,7 @@ interface PaginatedLogViewerProps {
   itemsPerPage?: number
   isLoading?: boolean
   onPageChange?: (page: number) => void
+  searchKeyword?: string
 }
 
 export const PaginatedLogViewer: React.FC<PaginatedLogViewerProps> = ({
@@ -16,6 +17,7 @@ export const PaginatedLogViewer: React.FC<PaginatedLogViewerProps> = ({
   itemsPerPage = 50,
   isLoading = false,
   onPageChange,
+  searchKeyword,
 }) => {
   const { t } = useTranslation()
   const [currentPage, setCurrentPage] = React.useState(1)
@@ -124,7 +126,7 @@ export const PaginatedLogViewer: React.FC<PaginatedLogViewerProps> = ({
   return (
     <div className="space-y-4">
       {/* Log Viewer */}
-      <VirtualizedLogViewer logs={pagination.paginatedLogs} isLoading={isLoading} height={500} />
+      <VirtualizedLogViewer logs={pagination.paginatedLogs} isLoading={isLoading} height={500} searchKeyword={searchKeyword} />
 
       {/* Pagination Controls */}
       {pagination.totalPages > 1 && (

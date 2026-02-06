@@ -6,6 +6,7 @@ interface VirtualizedLogViewerProps {
   logs: LogEntry[]
   height?: number
   isLoading?: boolean
+  searchKeyword?: string
 }
 
 // Color mapping for log levels
@@ -26,11 +27,33 @@ const LogRow = React.memo(
     log,
     style,
     index,
+    searchKeyword,
   }: {
     log: LogEntry
     style?: CSSProperties
     index: number
+    searchKeyword?: string
   }) => {
+    /**
+     * Highlight function - returns JSX with highlighted matches
+     */
+    const highlightText = (text: string, keyword: string): React.ReactNode => {
+      if (!keyword || keyword.trim() === '') return text
+      
+      const regex = new RegExp(`(${keyword.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&')})`, 'gi')
+      const parts = text.split(regex)
+      
+      return parts.map((part, i) => 
+        regex.test(part) ? (
+          <span key={i} className="bg-yellow-300 font-semibold text-gray-900">
+            {part}
+          </span>
+        ) : (
+          part
+        )
+      )
+    }
+    
     const colors = levelColors[log.level] || levelColors.INFO
     const timestamp = new Date(log.timestamp).toLocaleString()
 
@@ -80,7 +103,7 @@ const LogRow = React.memo(
 
               {/* Message */}
               <p className={`${colors.text} text-sm break-words font-mono leading-relaxed line-clamp-2`}>
-                {log.message}
+                {highlightText(log.message, searchKeyword || '')}
               </p>
             </div>
 
@@ -109,6 +132,7 @@ export const VirtualizedLogViewer: React.FC<VirtualizedLogViewerProps> = ({
   logs,
   height = 600,
   isLoading = false,
+  searchKeyword,
 }) => {
   // Memoize the logs to prevent unnecessary re-renders
   const memoizedLogs = useMemo(() => logs, [logs])
@@ -178,7 +202,7 @@ export const VirtualizedLogViewer: React.FC<VirtualizedLogViewerProps> = ({
         aria-label="Log entries"
       >
         {memoizedLogs.map((log, index) => (
-          <LogRow key={log.id} log={log} index={index} />
+          <LogRow key={log.id} log={log} index={index} searchKeyword={searchKeyword} />
         ))}
       </div>
     </section>

@@ -7,9 +7,10 @@ import { useKeyboardNavigation, useAriaLiveRegion } from '../hooks/useAccessibil
 interface FilterPanelProps {
   logs: LogEntry[]
   onFilterChange: (filtered: LogEntry[]) => void
+  onKeywordChange?: (keyword: string) => void
 }
 
-export const FilterPanel: React.FC<FilterPanelProps> = ({ logs, onFilterChange }) => {
+export const FilterPanel: React.FC<FilterPanelProps> = ({ logs, onFilterChange, onKeywordChange }) => {
   const { t } = useTranslation()
   const { announce } = useAriaLiveRegion()
   const [filters, setFilters] = useState<FilterOptions>({
@@ -41,6 +42,8 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({ logs, onFilterChange }
     const newFilters = { ...filters, keyword: e.target.value }
     setFilters(newFilters)
     applyFilters(newFilters)
+    // Pass keyword back to parent for highlighting
+    onKeywordChange?.(e.target.value)
   }
 
   const handleSourceChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -71,6 +74,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({ logs, onFilterChange }
     }
     setFilters(emptyFilters)
     onFilterChange(logs)
+    onKeywordChange?.('')
     announce('All filters cleared')
   }
 
