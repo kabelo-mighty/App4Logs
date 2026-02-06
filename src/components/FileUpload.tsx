@@ -200,10 +200,10 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onLogsLoaded }) => {
         aria-describedby="file-upload-instructions"
         className={`border-2 border-dashed rounded-lg p-8 text-center transition-all duration-300 ${
           isLoading
-            ? 'border-gray-300 bg-gray-50 opacity-60 cursor-not-allowed'
+            ? 'border-zinc-600 bg-zinc-800 opacity-60 cursor-not-allowed'
             : isDragging
-            ? 'border-blue-500 bg-blue-50 shadow-lg scale-105'
-            : 'border-gray-300 bg-gradient-to-br from-gray-50 to-gray-100 hover:border-blue-400 hover:shadow-md'
+            ? 'border-blue-500 bg-blue-900/20 shadow-lg scale-105 ring-2 ring-blue-500/50'
+            : 'border-zinc-600 bg-zinc-900 hover:border-blue-500 hover:shadow-lg'
         }`}
       >
         {!isLoading ? (
@@ -211,8 +211,8 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onLogsLoaded }) => {
             <svg className="mx-auto h-16 w-16 text-blue-400 mb-2" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
               <path d="M28 8H12a4 4 0 00-4 4v20a4 4 0 004 4h24a4 4 0 004-4V20m-6-6l-8-8m0 0l-8 8m8-8v20" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
-            <p className="mt-3 text-base font-semibold text-gray-900">{t('dragDrop')}</p>
-            <p id="file-upload-instructions" className="text-sm text-gray-500 mt-2">{t('orClickBrowse')}</p>
+            <p className="mt-3 text-base font-semibold text-white">{t('dragDrop')}</p>
+            <p id="file-upload-instructions" className="text-sm text-zinc-400 mt-2">{t('orClickBrowse')}</p>
 
             <input
               type="file"
@@ -231,7 +231,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onLogsLoaded }) => {
 
             <label 
               htmlFor="file-upload" 
-              className="mt-6 inline-flex items-center px-6 py-3 border border-transparent text-sm font-semibold rounded-lg shadow-md text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 cursor-pointer transition-all duration-200 transform hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              className="mt-6 inline-flex items-center px-6 py-3 border border-transparent text-sm font-semibold rounded-lg shadow-lg text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 cursor-pointer transition-transform duration-150 transform hover:-translate-y-0.5 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-500"
               aria-pressed={false}
             >
               <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -243,17 +243,17 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onLogsLoaded }) => {
         ) : (
           <>
             <div className="inline-flex items-center justify-center" aria-busy="true" role="status">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" aria-hidden="true"></div>
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500" aria-hidden="true"></div>
             </div>
-            <p className="mt-4 text-base font-semibold text-gray-900">{fileName}</p>
-            <p className="text-sm text-gray-500 mt-2" aria-live="polite">Processing your log file...</p>
-            <div className="mt-4 w-full bg-gray-200 rounded-full h-2 overflow-hidden" role="progressbar" aria-valuenow={uploadProgress} aria-valuemin={0} aria-valuemax={100} aria-label="Upload progress">
+            <p className="mt-4 text-base font-semibold text-white">{fileName}</p>
+            <p className="text-sm text-zinc-400 mt-2" aria-live="polite">Processing your log file...</p>
+            <div className="mt-4 w-full bg-zinc-700 rounded-full h-2 overflow-hidden" role="progressbar" aria-valuenow={uploadProgress} aria-valuemin={0} aria-valuemax={100} aria-label="Upload progress">
               <div
                 className="bg-gradient-to-r from-blue-500 to-blue-600 h-full transition-all duration-300 ease-out"
                 style={{ width: `${uploadProgress}%` }}
               />
             </div>
-            <p className="text-xs text-gray-500 mt-2" aria-live="polite">{uploadProgress}% complete</p>
+            <p className="text-xs text-zinc-400 mt-2" aria-live="polite">{uploadProgress}% complete</p>
           </>
         )}
       </div>

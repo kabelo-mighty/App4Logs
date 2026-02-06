@@ -187,7 +187,7 @@ export class LogStreamingService {
     const logObj = log as Record<string, unknown>
 
     return {
-      id: logObj.id || `log-${Date.now()}-${idx}`,
+      id: String(logObj.id || `log-${Date.now()}-${idx}`),
       timestamp: String(logObj.timestamp || logObj.time || logObj.date || new Date().toISOString()),
       level: (String(logObj.level || logObj.severity || 'INFO').toUpperCase() as any) || 'INFO',
       source: String(logObj.source || logObj.logger || logObj.service || 'API'),

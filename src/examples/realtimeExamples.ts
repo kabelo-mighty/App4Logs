@@ -5,7 +5,7 @@
  * into your App4Logs application.
  */
 
-import { StreamingConfig } from './types'
+import { StreamingConfig } from '../types'
 
 /**
  * Example 1: Simple Polling Setup
