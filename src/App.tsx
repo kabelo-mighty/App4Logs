@@ -19,8 +19,9 @@ function AppContent() {
   const [logs, setLogs] = useState<LogEntry[]>([])
   const [filteredLogs, setFilteredLogs] = useState<LogEntry[]>([])
   const [hasLoaded, setHasLoaded] = useState(false)
-  const [activeTab, setActiveTab] = useState<'upload' | 'realtime'>('upload')
   const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [showUploadModal, setShowUploadModal] = useState(false)
+  const [showRealtimeModal, setShowRealtimeModal] = useState(false)
   const { announcement, announce } = useAriaLiveRegion()
   const { handleSkipClick } = useSkipLink('main-content')
 
@@ -55,6 +56,7 @@ function AppContent() {
       setLogs(newLogs)
       setFilteredLogs(newLogs)
       setHasLoaded(true)
+      setShowUploadModal(false)
       logUserAction('logs_uploaded', {
         count: newLogs.length,
       })
@@ -96,6 +98,7 @@ function AppContent() {
       setLogs([])
       setFilteredLogs([])
       await realtimeStream.connect(config)
+      setShowRealtimeModal(false)
       announce('Connected to real-time log stream')
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error))
@@ -158,12 +161,8 @@ function AppContent() {
           {/* Navigation Menu */}
           <nav className="flex-1 px-3 py-6 space-y-2">
             <button
-              onClick={() => setActiveTab('upload')}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
-                activeTab === 'upload'
-                  ? 'bg-blue-600 text-white'
-                  : 'text-zinc-300 hover:bg-zinc-700'
-              }`}
+              onClick={() => setShowUploadModal(true)}
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors bg-blue-600 text-white hover:bg-blue-700 shadow-lg"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
@@ -172,10 +171,10 @@ function AppContent() {
             </button>
 
             <button
-              onClick={() => setActiveTab('realtime')}
+              onClick={() => setShowRealtimeModal(true)}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
-                activeTab === 'realtime'
-                  ? 'bg-blue-600 text-white'
+                realtimeStream.status.isConnected
+                  ? 'bg-green-600 text-white hover:bg-green-700 shadow-lg'
                   : 'text-zinc-300 hover:bg-zinc-700'
               }`}
             >
@@ -183,6 +182,9 @@ function AppContent() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
               </svg>
               Real-time Stream
+              {realtimeStream.status.isConnected && (
+                <span className="ml-auto w-2 h-2 bg-white rounded-full animate-pulse"></span>
+              )}
             </button>
 
             {hasLoaded && logs.length > 0 && (
@@ -236,43 +238,9 @@ function AppContent() {
 
           {/* Content Area */}
           <div className="p-8">
-            {/* Upload Tab */}
-            {activeTab === 'upload' && (
-              <div className="max-w-4xl mx-auto">
-                <div className="mb-8">
-                  <h2 className="text-2xl font-bold text-white mb-2">Upload Log Files</h2>
-                  <p className="text-zinc-400">Import logs from your applications for analysis</p>
-                </div>
-
-                <div className="bg-zinc-800 border border-zinc-700 rounded-lg p-8 shadow-xl">
-                  <FileUpload onLogsLoaded={handleLogsLoaded} />
-                </div>
-              </div>
-            )}
-
-            {/* Real-time Tab */}
-            {activeTab === 'realtime' && (
-              <div className="max-w-4xl mx-auto">
-                <div className="mb-8">
-                  <h2 className="text-2xl font-bold text-white mb-2">Real-time Log Streaming</h2>
-                  <p className="text-zinc-400">Connect to an API endpoint to stream logs in real-time</p>
-                </div>
-
-                <div className="bg-zinc-800 border border-zinc-700 rounded-lg p-8 shadow-xl">
-                  <RealtimeLogInput
-                    onConnect={handleRealtimeConnect}
-                    isConnecting={realtimeStream.status.isLoading}
-                    isConnected={realtimeStream.status.isConnected}
-                    error={realtimeStream.status.error}
-                    onDisconnect={handleRealtimeDisconnect}
-                  />
-                </div>
-              </div>
-            )}
-
             {/* Logs Display Area */}
             {hasLoaded && logs.length > 0 && (
-              <div className="mt-12">
+              <div className="mt-0">
                 <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
                   {/* Sidebar - Filters */}
                   <div className="lg:col-span-1">
@@ -319,7 +287,7 @@ function AppContent() {
             )}
 
             {/* Empty State */}
-            {!hasLoaded && activeTab === 'upload' && (
+            {!hasLoaded && (
               <div className="max-w-4xl mx-auto">
                 <div className="bg-zinc-800 border border-zinc-700 rounded-lg p-16 text-center">
                   <div className="inline-flex items-center justify-center w-20 h-20 bg-blue-900 rounded-lg mb-4">
@@ -327,11 +295,105 @@ function AppContent() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
                   </div>
-                  <p className="text-xl font-bold text-white mt-4">No logs loaded</p>
+                  <p className="text-xl font-bold text-white mt-4">Welcome to App4Logs</p>
                   <p className="text-zinc-400 mt-2">Upload a log file or connect to a real-time stream to get started</p>
+                  <div className="flex flex-col sm:flex-row gap-3 mt-8">
+                    <button
+                      onClick={() => setShowUploadModal(true)}
+                      className="flex-1 py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                      </svg>
+                      Upload File
+                    </button>
+                    <button
+                      onClick={() => setShowRealtimeModal(true)}
+                      className="flex-1 py-3 px-4 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                      </svg>
+                      Real-time Stream
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
+
+          {/* Upload Modal */}
+          {showUploadModal && (
+            <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+              <div className="bg-zinc-800 border border-zinc-700 rounded-lg shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                {/* Modal Header */}
+                <div className="sticky top-0 flex items-center justify-between px-8 py-6 border-b border-zinc-700 bg-zinc-800">
+                  <div>
+                    <h2 className="text-2xl font-bold text-white flex items-center gap-3">
+                      <svg className="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                      </svg>
+                      Upload Log Files
+                    </h2>
+                    <p className="text-sm text-zinc-400 mt-1">Import logs from your applications for analysis</p>
+                  </div>
+                  <button
+                    onClick={() => setShowUploadModal(false)}
+                    className="p-2 hover:bg-zinc-700 rounded-lg text-zinc-400 hover:text-white transition-colors"
+                    aria-label="Close modal"
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+
+                {/* Modal Content */}
+                <div className="p-8">
+                  <FileUpload onLogsLoaded={handleLogsLoaded} />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Real-time Log Streaming Modal */}
+          {showRealtimeModal && (
+            <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+              <div className="bg-zinc-800 border border-zinc-700 rounded-lg shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                {/* Modal Header */}
+                <div className="sticky top-0 flex items-center justify-between px-8 py-6 border-b border-zinc-700 bg-zinc-800">
+                  <div>
+                    <h2 className="text-2xl font-bold text-white flex items-center gap-3">
+                      <svg className="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                      </svg>
+                      Real-time Log Streaming
+                    </h2>
+                    <p className="text-sm text-zinc-400 mt-1">Connect to an API endpoint to stream logs in real-time</p>
+                  </div>
+                  <button
+                    onClick={() => setShowRealtimeModal(false)}
+                    className="p-2 hover:bg-zinc-700 rounded-lg text-zinc-400 hover:text-white transition-colors"
+                    aria-label="Close modal"
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+
+                {/* Modal Content */}
+                <div className="p-8">
+                  <RealtimeLogInput
+                    onConnect={handleRealtimeConnect}
+                    isConnecting={realtimeStream.status.isLoading}
+                    isConnected={realtimeStream.status.isConnected}
+                    error={realtimeStream.status.error}
+                    onDisconnect={handleRealtimeDisconnect}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
           </div>
         </main>
       </div>
