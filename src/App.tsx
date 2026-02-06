@@ -111,6 +111,28 @@ function AppContent() {
     announce('Disconnected from real-time log stream')
   }, [realtimeStream, announce])
 
+  // Dev-only: Quick connect to dummy API
+  const handleQuickConnectDummy = useCallback(async () => {
+    const config: StreamingConfig = {
+      endpoint: 'http://localhost:4000/logs',
+      method: 'GET',
+      useWebSocket: false,
+      pollingInterval: 5000,
+      retryAttempts: 3,
+      retryDelay: 2000,
+    }
+    try {
+      setHasLoaded(true)
+      setLogs([])
+      setFilteredLogs([])
+      await realtimeStream.connect(config)
+      announce('Connected to dummy API (dev mode)')
+    } catch (error) {
+      const err = error instanceof Error ? error : new Error(String(error))
+      announce(`Failed to connect: ${err.message}`)
+    }
+  }, [realtimeStream, announce])
+
   // Update filtered logs when main logs change
   useEffect(() => {
     if (realtimeStream.status.isConnected) {
@@ -315,6 +337,18 @@ function AppContent() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                       </svg>
                       Real-time Stream
+                    </button>
+                    
+                    {/* Dev-only Quick Connect button */}
+                    <button
+                      onClick={handleQuickConnectDummy}
+                      className="flex-1 py-3 px-4 bg-yellow-600 hover:bg-yellow-700 text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
+                      title="Quick connect to dummy API (development only)"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                      </svg>
+                      Quick Connect (Dev)
                     </button>
                   </div>
                 </div>
