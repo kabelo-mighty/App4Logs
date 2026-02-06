@@ -25,3 +25,27 @@ export interface LogStatistics {
   debug: number
   trace: number
 }
+
+// Real-time streaming configuration types
+export interface StreamingConfig {
+  endpoint: string
+  method?: 'GET' | 'POST'
+  headers?: Record<string, string>
+  pollingInterval?: number
+  useWebSocket?: boolean
+  parser?: (data: unknown) => LogEntry[] | LogEntry
+  retryAttempts?: number
+  retryDelay?: number
+}
+
+export interface StreamingStatus {
+  isConnected: boolean
+  isLoading: boolean
+  error: string | null
+  lastUpdate?: Date
+  messagesReceived?: number
+}
+
+export type StreamCallback = (logs: LogEntry[], isAppending: boolean) => void
+export type StatusCallback = (status: StreamingStatus) => void
+export type ErrorCallback = (error: Error) => void

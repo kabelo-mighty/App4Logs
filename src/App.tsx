@@ -1,7 +1,8 @@
 import React, { useState, useCallback, useEffect, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { LogEntry } from './types'
+import { LogEntry, StreamingConfig } from './types'
 import { FileUpload } from './components/FileUpload'
+import { RealtimeLogInput } from './components/RealtimeLogInput'
 import { FilterPanel } from './components/FilterPanel'
 import { Statistics } from './components/Statistics'
 import { PaginatedLogViewer } from './components/PaginatedLogViewer'
@@ -11,14 +12,27 @@ import { ErrorBoundary } from './components/ErrorBoundary'
 import { initErrorTracking, logUserAction, markPerformance, measurePerformance } from './utils/telemetry'
 import { usePageTitle, useSkipLink, useAriaLiveRegion } from './hooks/useAccessibility'
 import { announceContentChange } from './utils/accessibility'
+import { useRealtimeLogStream } from './hooks/useRealtimeLogStream'
 
 function AppContent() {
   const { t } = useTranslation()
   const [logs, setLogs] = useState<LogEntry[]>([])
   const [filteredLogs, setFilteredLogs] = useState<LogEntry[]>([])
   const [hasLoaded, setHasLoaded] = useState(false)
+  const [useRealtimeMode, setUseRealtimeMode] = useState(false)
   const { announcement, announce } = useAriaLiveRegion()
   const { handleSkipClick } = useSkipLink('main-content')
+
+  // Real-time log streaming hook
+  const realtimeStream = useRealtimeLogStream((newLogs) => {
+    setLogs(prevLogs => {
+      const updated = [...prevLogs, ...newLogs]
+      // Limit total logs in UI to 1000 for performance
+      return updated.length > 1000 ? updated.slice(-1000) : updated
+    })
+    announceContentChange(newLogs.length.toString(), 'realtime_logs_received')
+    announce(`Received ${newLogs.length} new log entries`)
+  }, 10000)
 
   // Set page title for screen readers
   usePageTitle('Log Analyzer - WCAG 2.1 Accessible Log Analysis Tool')
@@ -75,6 +89,34 @@ function AppContent() {
     }
   }, [logs.length, announce])
 
+  const handleRealtimeConnect = useCallback(async (config: StreamingConfig) => {
+    try {
+      setUseRealtimeMode(true)
+      setHasLoaded(true)
+      setLogs([])
+      setFilteredLogs([])
+      await realtimeStream.connect(config)
+      announce('Connected to real-time log stream')
+    } catch (error) {
+      const err = error instanceof Error ? error : new Error(String(error))
+      announce(`Failed to connect: ${err.message}`)
+      setUseRealtimeMode(false)
+    }
+  }, [realtimeStream, announce])
+
+  const handleRealtimeDisconnect = useCallback(() => {
+    realtimeStream.disconnect()
+    setUseRealtimeMode(false)
+    announce('Disconnected from real-time log stream')
+  }, [realtimeStream, announce])
+
+  // Update filtered logs when main logs change
+  useEffect(() => {
+    if (useRealtimeMode) {
+      setFilteredLogs(logs)
+    }
+  }, [logs, useRealtimeMode])
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
       {/* Skip to main content link for keyboard navigation */}
@@ -125,6 +167,17 @@ function AppContent() {
           {/* Upload Section */}
           <div className="bg-white rounded-lg shadow-xl p-8">
             <FileUpload onLogsLoaded={handleLogsLoaded} />
+          </div>
+
+          {/* Real-time Log Input Section */}
+          <div className="bg-white rounded-lg shadow-xl p-8">
+            <RealtimeLogInput
+              onConnect={handleRealtimeConnect}
+              isConnecting={realtimeStream.status.isLoading}
+              isConnected={realtimeStream.status.isConnected}
+              error={realtimeStream.status.error}
+              onDisconnect={handleRealtimeDisconnect}
+            />
           </div>
 
           {/* Main Content - Show only if logs are loaded */}
