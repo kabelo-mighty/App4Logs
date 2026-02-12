@@ -272,103 +272,93 @@ function AppContent() {
           </header>
 
           {/* Content Area */}
-          <div className="p-8">
+          <div className="p-0 flex flex-col flex-1 overflow-hidden">
             {/* Logs Display Area */}
             {hasLoaded && logs.length > 0 && (
-              <div className="mt-0">
-                <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
-                  {/* Sidebar - Filters */}
-                  <div className="lg:col-span-1">
-                    <div className="bg-zinc-800 border border-zinc-700 rounded-lg p-6 shadow-lg">
-                      <FilterPanel logs={logs} onFilterChange={handleFilterChange} onKeywordChange={setSearchKeyword} />
-                    </div>
-                  </div>
+              <div className="flex flex-col h-full gap-0 p-6 overflow-hidden">
+                {/* Filters - Horizontal Bar on Top */}
+                <div className="bg-zinc-800 border border-zinc-700 rounded-lg p-4 shadow-lg flex-shrink-0 mb-4">
+                  <FilterPanel logs={logs} onFilterChange={handleFilterChange} onKeywordChange={setSearchKeyword} />
+                </div>
 
-                  {/* Main Content - Logs and Statistics */}
-                  <div className="lg:col-span-3 space-y-6">
-                    {/* Statistics */}
-                    <div className="bg-zinc-800 border border-zinc-700 rounded-lg p-6 shadow-lg">
-                      <Statistics logs={filteredLogs} />
-                    </div>
-
-                    {/* Log Viewer */}
-                    <div className="bg-zinc-800 border border-zinc-700 rounded-lg shadow-lg overflow-hidden">
-                      <div className="p-6 border-b border-zinc-700">
-                        <div className="flex items-center justify-between">
-                          <h3 className="text-lg font-bold text-white">
-                            Logs <span className="text-blue-400">({filteredLogs.length}</span> / <span className="text-zinc-400">{logs.length})</span>
-                          </h3>
-                          <div className="flex items-center gap-2 text-xs">
-                            <div className="inline-flex items-center px-3 py-1 bg-blue-900 text-blue-300 rounded-full font-semibold border border-blue-700">
-                              {logs.length > 0 ? Math.round((filteredLogs.length / logs.length) * 100) : 0}% shown
-                            </div>
-                          </div>
+                {/* Main Content Area - Logs fill remaining space */}
+                <div className="flex-1 flex flex-col gap-4 min-h-0">
+                  {/* Log Viewer - fills available space */}
+                  <div className="bg-zinc-800 border border-zinc-700 rounded-lg shadow-lg overflow-hidden flex flex-col flex-1">
+                    <div className="px-6 py-4 border-b border-zinc-700 bg-zinc-900 flex items-center justify-between flex-shrink-0">
+                      <h3 className="text-lg font-bold text-white">
+                        Logs <span className="text-blue-400">({filteredLogs.length}</span> / <span className="text-zinc-400">{logs.length})</span>
+                      </h3>
+                      <div className="flex items-center gap-2 text-xs">
+                        <div className="inline-flex items-center px-3 py-1 bg-blue-900 text-blue-300 rounded-full font-semibold border border-blue-700">
+                          {logs.length > 0 ? Math.round((filteredLogs.length / logs.length) * 100) : 0}% shown
                         </div>
                       </div>
-                      <div className="p-6 bg-zinc-900">
-                        <PaginatedLogViewer logs={filteredLogs} itemsPerPage={50} searchKeyword={searchKeyword} />
-                      </div>
                     </div>
-
-                    {/* Export Buttons */}
-                    {filteredLogs.length > 0 && (
-                      <div className="bg-zinc-800 border border-zinc-700 rounded-lg p-6 shadow-lg">
-                        <ExportButtons logs={filteredLogs} />
-                      </div>
-                    )}
+                    <div className="flex-1 overflow-hidden">
+                      <PaginatedLogViewer logs={filteredLogs} itemsPerPage={50} searchKeyword={searchKeyword} />
+                    </div>
                   </div>
+
+                  {/* Export Buttons */}
+                  {filteredLogs.length > 0 && (
+                    <div className="bg-zinc-800 border border-zinc-700 rounded-lg p-4 shadow-lg flex-shrink-0">
+                      <ExportButtons logs={filteredLogs} />
+                    </div>
+                  )}
                 </div>
               </div>
             )}
 
             {/* Empty State */}
             {!hasLoaded && (
-              <div className="max-w-4xl mx-auto">
-                <div className="bg-zinc-800 border border-zinc-700 rounded-lg p-16 text-center">
-                  <div className="inline-flex items-center justify-center w-20 h-20 bg-blue-900 rounded-lg mb-4">
-                    <svg className="w-10 h-10 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                  </div>
-                  <p className="text-xl font-bold text-white mt-4">Welcome to App4Logs</p>
-                  <p className="text-zinc-400 mt-2">Upload a log file or connect to a real-time stream to get started</p>
-                  <div className="flex flex-col sm:flex-row gap-3 mt-8">
-                    <button
-                      onClick={() => setShowUploadModal(true)}
-                      className="flex-1 py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+              <div className="flex-1 flex items-center justify-center">
+                <div className="max-w-4xl mx-auto w-full px-6">
+                  <div className="bg-zinc-800 border border-zinc-700 rounded-lg p-16 text-center">
+                    <div className="inline-flex items-center justify-center w-20 h-20 bg-blue-900 rounded-lg mb-4">
+                      <svg className="w-10 h-10 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                       </svg>
-                      Upload File
-                    </button>
-                    <button
-                      onClick={() => setShowRealtimeModal(true)}
-                      className="flex-1 py-3 px-4 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                      </svg>
-                      Real-time Stream
-                    </button>
-                    
-                    {/* Dev-only Quick Connect button */}
-                    <button
-                      onClick={handleQuickConnectDummy}
-                      className="flex-1 py-3 px-4 bg-yellow-600 hover:bg-yellow-700 text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
-                      title="Quick connect to dummy API (development only)"
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                      </svg>
-                      Quick Connect (Dev)
-                    </button>
+                    </div>
+                    <p className="text-xl font-bold text-white mt-4">Welcome to App4Logs</p>
+                    <p className="text-zinc-400 mt-2">Upload a log file or connect to a real-time stream to get started</p>
+                    <div className="flex flex-col sm:flex-row gap-3 mt-8">
+                      <button
+                        onClick={() => setShowUploadModal(true)}
+                        className="flex-1 py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                        </svg>
+                        Upload File
+                      </button>
+                      <button
+                        onClick={() => setShowRealtimeModal(true)}
+                        className="flex-1 py-3 px-4 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                        Real-time Stream
+                      </button>
+                      
+                      {/* Dev-only Quick Connect button */}
+                      <button
+                        onClick={handleQuickConnectDummy}
+                        className="flex-1 py-3 px-4 bg-yellow-600 hover:bg-yellow-700 text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
+                        title="Quick connect to dummy API (development only)"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                        Quick Connect (Dev)
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
             )}
-
-          {/* Upload Modal */}
+          </div>
           {showUploadModal && (
             <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
               <div className="bg-zinc-800 border border-zinc-700 rounded-lg shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">

@@ -79,7 +79,7 @@ export const PaginatedLogViewer: React.FC<PaginatedLogViewerProps> = ({
           key="first"
           onClick={() => handlePageChange(1)}
           aria-label={t('firstPage') || 'Go to first page'}
-          className="px-2 py-1 text-xs font-semibold text-blue-600 hover:bg-blue-50 rounded transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="px-2 py-1 text-xs font-semibold text-blue-400 hover:bg-zinc-700 rounded transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           First
         </button>
@@ -99,7 +99,7 @@ export const PaginatedLogViewer: React.FC<PaginatedLogViewerProps> = ({
             ${
               isCurrentPage
                 ? 'bg-blue-600 text-white'
-                : 'text-gray-700 hover:bg-gray-100 border border-gray-300'
+                : 'text-zinc-400 hover:bg-zinc-700 border border-zinc-600'
             }
           `}
         >
@@ -113,7 +113,7 @@ export const PaginatedLogViewer: React.FC<PaginatedLogViewerProps> = ({
         <button
           key="last"
           onClick={() => handlePageChange(pagination.totalPages)}
-          className="px-2 py-1 text-xs font-semibold text-blue-600 hover:bg-blue-50 rounded transition-colors"
+          className="px-2 py-1 text-xs font-semibold text-blue-400 hover:bg-zinc-700 rounded transition-colors"
         >
           Last
         </button>
@@ -124,22 +124,24 @@ export const PaginatedLogViewer: React.FC<PaginatedLogViewerProps> = ({
   }, [pagination.currentPage, pagination.totalPages, handlePageChange])
 
   return (
-    <div className="space-y-4">
-      {/* Log Viewer */}
-      <VirtualizedLogViewer logs={pagination.paginatedLogs} isLoading={isLoading} height={500} searchKeyword={searchKeyword} />
+    <div className="flex flex-col h-full">
+      {/* Log Viewer - fills remaining space */}
+      <div className="flex-1 min-h-0">
+        <VirtualizedLogViewer logs={pagination.paginatedLogs} isLoading={isLoading} height={undefined} searchKeyword={searchKeyword} />
+      </div>
 
       {/* Pagination Controls */}
       {pagination.totalPages > 1 && (
-        <div className="bg-white rounded-lg border border-gray-200 p-4">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="bg-zinc-900 border-t border-zinc-700 p-3 flex-shrink-0">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-sm">
             {/* Info Text */}
-            <div className="text-sm text-gray-600 font-medium">
+            <div className="text-zinc-400 font-medium">
               Showing{' '}
-              <span className="font-semibold text-gray-900">
+              <span className="font-semibold text-zinc-200">
                 {pagination.startIndex + 1}-{pagination.endIndex}
               </span>{' '}
               of{' '}
-              <span className="font-semibold text-gray-900">
+              <span className="font-semibold text-zinc-200">
                 {pagination.total.toLocaleString()}
               </span>{' '}
               logs
@@ -155,8 +157,8 @@ export const PaginatedLogViewer: React.FC<PaginatedLogViewerProps> = ({
                   px-3 py-1 text-xs font-semibold rounded transition-colors
                   ${
                     currentPage === 1
-                      ? 'text-gray-400 bg-gray-50 cursor-not-allowed'
-                      : 'text-gray-700 hover:bg-gray-100 border border-gray-300'
+                      ? 'text-zinc-600 bg-zinc-800 cursor-not-allowed'
+                      : 'text-zinc-300 hover:bg-zinc-700 border border-zinc-600'
                   }
                 `}
               >
@@ -174,8 +176,8 @@ export const PaginatedLogViewer: React.FC<PaginatedLogViewerProps> = ({
                   px-3 py-1 text-xs font-semibold rounded transition-colors
                   ${
                     currentPage === pagination.totalPages
-                      ? 'text-gray-400 bg-gray-50 cursor-not-allowed'
-                      : 'text-gray-700 hover:bg-gray-100 border border-gray-300'
+                      ? 'text-zinc-600 bg-zinc-800 cursor-not-allowed'
+                      : 'text-zinc-300 hover:bg-zinc-700 border border-zinc-600'
                   }
                 `}
               >
@@ -184,10 +186,10 @@ export const PaginatedLogViewer: React.FC<PaginatedLogViewerProps> = ({
             </div>
 
             {/* Page Info */}
-            <div className="text-sm text-gray-600 font-medium">
+            <div className="text-zinc-400 font-medium">
               Page{' '}
-              <span className="font-semibold text-gray-900">{pagination.currentPage}</span> of{' '}
-              <span className="font-semibold text-gray-900">{pagination.totalPages}</span>
+              <span className="font-semibold text-zinc-200">{pagination.currentPage}</span> of{' '}
+              <span className="font-semibold text-zinc-200">{pagination.totalPages}</span>
             </div>
           </div>
         </div>

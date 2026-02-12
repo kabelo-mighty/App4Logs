@@ -149,11 +149,11 @@ export const VirtualizedLogViewer: React.FC<VirtualizedLogViewerProps> = ({
 
   return (
     <section
-      className="bg-[#0b1220] text-green-200 font-mono overflow-hidden border border-[#07101a]"
+      className="bg-[#0b1220] text-green-200 font-mono overflow-hidden border border-[#07101a] h-full flex flex-col"
       role="region"
       aria-label={`Log viewer displaying ${memoizedLogs.length.toLocaleString()} log entries`}
     >
-      <div className="px-3 py-2 bg-[#07101a] border-b border-[#07101a]">
+      <div className="px-3 py-2 bg-[#07101a] border-b border-[#07101a] flex-shrink-0">
         <p className="text-xs text-green-300 font-medium" aria-live="polite">
           Displaying {memoizedLogs.length.toLocaleString()} logs
         </p>
@@ -161,11 +161,11 @@ export const VirtualizedLogViewer: React.FC<VirtualizedLogViewerProps> = ({
 
       <div
         style={{
-          height: `${height}px`,
+          height: height ? `${height}px` : undefined,
           overflow: 'auto',
           paddingRight: '2px',
         }}
-        className="pr-2"
+        className={`${height ? '' : 'flex-1'} pr-2`}
         role="rowgroup"
         aria-label="Log entries"
       >
