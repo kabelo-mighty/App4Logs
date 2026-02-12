@@ -38,7 +38,7 @@ function AppContent() {
   }, 10000)
 
   // Set page title for screen readers
-  usePageTitle('Log Analyzer - WCAG 2.1 Accessible Log Analysis Tool')
+  usePageTitle('Log Analyzer')
 
   // Initialize error tracking on mount
   useEffect(() => {
