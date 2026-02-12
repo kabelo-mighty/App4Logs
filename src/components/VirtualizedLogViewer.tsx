@@ -102,7 +102,7 @@ const LogRow = React.memo(
               )}
 
               {/* Message */}
-              <p className={`${colors.text} text-sm break-words font-mono leading-relaxed line-clamp-2`}>
+              <p className={`${colors.text} text-sm break-words font-mono leading-relaxed`}>
                 {highlightText(log.message, searchKeyword || '')}
               </p>
             </div>
