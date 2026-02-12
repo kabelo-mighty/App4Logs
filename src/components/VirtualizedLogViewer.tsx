@@ -57,59 +57,41 @@ const LogRow = React.memo(
     const colors = levelColors[log.level] || levelColors.INFO
     const timestamp = new Date(log.timestamp).toLocaleString()
 
+    const levelClass: Record<string, string> = {
+      ERROR: 'text-red-400',
+      WARNING: 'text-yellow-400',
+      INFO: 'text-blue-300',
+      DEBUG: 'text-purple-300',
+      TRACE: 'text-gray-400',
+    }
+
     return (
-      <div 
-        style={style} 
-        className="px-2 py-1"
+      <div
+        style={style}
+        className="px-2"
         role="row"
         aria-rowindex={index + 1}
       >
         <div
-          className={`
-        ${colors.bg} ${colors.border} border-l-4 px-4 py-3
-        hover:shadow-md transition-shadow duration-200 cursor-pointer
-        rounded focus:outline-none focus:ring-2 focus:ring-blue-500
-      `}
           tabIndex={0}
           role="article"
           aria-label={`Log entry ${index + 1}: ${log.level} - ${log.message.substring(0, 50)}`}
+          className="flex items-start justify-between gap-2 px-3 py-1 hover:bg-[#07101a]"
         >
-          <div className="flex items-start justify-between gap-2">
-            <div className="flex-1 min-w-0">
-              {/* Level and Timestamp */}
-              <div className="flex items-center gap-2 mb-1">
-                <span 
-                  className={`${colors.text} font-semibold text-xs px-2 py-1 rounded bg-white`}
-                  aria-label={`Log level: ${log.level}`}
-                >
-                  {log.level}
-                </span>
-                <time 
-                  className="text-xs text-gray-500"
-                  dateTime={log.timestamp}
-                >
-                  {timestamp}
-                </time>
-              </div>
+          <div className="flex-1 min-w-0 flex items-center gap-3">
+            <time className="text-green-400 text-xs w-44 flex-shrink-0" dateTime={log.timestamp}>
+              {timestamp}
+            </time>
 
-              {/* Source if available */}
-              {log.source && (
-                <div className="text-xs text-gray-600 mb-1">
-                  <span className="inline-block px-2 py-1 bg-white rounded">
-                    📦 <span aria-label="Source">{log.source}</span>
-                  </span>
-                </div>
-              )}
+            <span className={`text-xs font-semibold ${levelClass[log.level] || 'text-blue-300'} w-16`}>{log.level}</span>
 
-              {/* Message */}
-              <p className={`${colors.text} text-sm break-words font-mono leading-relaxed`}>
-                {highlightText(log.message, searchKeyword || '')}
-              </p>
+            <div className="text-green-200 text-sm break-words whitespace-pre-wrap">
+              {log.source ? <span className="text-green-300 mr-2">[{log.source}]</span> : null}
+              {highlightText(log.message, searchKeyword || '')}
             </div>
-
-            {/* Log ID */}
-            <div className="text-xs text-gray-400 flex-shrink-0" aria-label={`Entry ID: ${log.id}`}>#{log.id}</div>
           </div>
+
+          <div className="text-green-600 text-xs flex-shrink-0" aria-label={`Entry ID: ${log.id}`}>#{log.id}</div>
         </div>
       </div>
     )
@@ -140,54 +122,40 @@ export const VirtualizedLogViewer: React.FC<VirtualizedLogViewerProps> = ({
 
   if (isLoading) {
     return (
-      <div 
-        className="bg-gray-50 rounded-lg p-8 text-center"
+      <div
+        className="bg-[#0b1220] text-green-200 font-mono rounded p-6 text-center"
         role="status"
         aria-label="Loading logs"
       >
         <div className="inline-flex items-center justify-center mb-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" aria-hidden="true"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-400" aria-hidden="true"></div>
         </div>
-        <p className="text-gray-600 font-semibold">Loading logs...</p>
+        <p className="text-green-300 font-medium">Loading logs...</p>
       </div>
     )
   }
 
   if (memoizedLogs.length === 0) {
     return (
-      <div 
-        className="bg-gray-50 rounded-lg p-8 text-center"
+      <div
+        className="bg-[#0b1220] text-green-200 font-mono p-6 text-center"
         role="status"
         aria-label="No logs available"
       >
-        <svg
-          className="mx-auto w-12 h-12 text-gray-400 mb-4"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-          aria-hidden="true"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={1}
-            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-          />
-        </svg>
-        <p className="text-gray-600 font-semibold">No logs to display</p>
+        <p className="text-green-300 font-medium">No logs to display</p>
       </div>
     )
   }
 
   return (
-    <section 
-      className="bg-white rounded-lg overflow-hidden border border-gray-200"
+    <section
+      className="bg-[#0b1220] text-green-200 font-mono overflow-hidden border border-[#07101a]"
       role="region"
       aria-label={`Log viewer displaying ${memoizedLogs.length.toLocaleString()} log entries`}
     >
-      <div className="px-4 py-2 bg-gray-50 border-b border-gray-200">
-        <p className="text-xs text-gray-600 font-semibold" aria-live="polite">
-          Displaying {memoizedLogs.length.toLocaleString()} logs (optimized for performance)
+      <div className="px-3 py-2 bg-[#07101a] border-b border-[#07101a]">
+        <p className="text-xs text-green-300 font-medium" aria-live="polite">
+          Displaying {memoizedLogs.length.toLocaleString()} logs
         </p>
       </div>
 
@@ -197,7 +165,7 @@ export const VirtualizedLogViewer: React.FC<VirtualizedLogViewerProps> = ({
           overflow: 'auto',
           paddingRight: '2px',
         }}
-        className="space-y-2 pr-2"
+        className="pr-2"
         role="rowgroup"
         aria-label="Log entries"
       >
