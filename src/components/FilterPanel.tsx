@@ -99,26 +99,35 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({ logs, onFilterChange, 
       {/* Horizontal Filter Layout */}
       <div className="flex flex-wrap items-center gap-4">
         {/* Log Level Filter - Horizontal */}
-        <div role="group" aria-label="Log level filters" className="flex items-center gap-2">
-          <span className="text-xs font-semibold text-zinc-400 uppercase">Level:</span>
-          {levels.map(level => (
-            <label 
-              key={level} 
-              className="flex items-center p-1 rounded hover:bg-zinc-700 cursor-pointer transition-colors focus-within:ring-2 focus-within:ring-blue-400"
-            >
-              <input
-                type="checkbox"
-                checked={filters.levels.includes(level)}
-                onChange={() => handleLevelChange(level)}
-                className="rounded border-zinc-600 text-blue-500 shadow-sm cursor-pointer focus:ring-2 focus:ring-blue-400"
-                aria-label={`${t(level.toLowerCase() as any)} - ${logs.filter(l => l.level === level).length} entries`}
-              />
-              <span className="ml-1 text-xs font-medium text-zinc-200">{level}</span>
-              <span className="ml-1 text-xs bg-zinc-700 px-1.5 py-0.5 rounded text-zinc-400" aria-hidden="true">
-                {logs.filter(l => l.level === level).length}
-              </span>
-            </label>
-          ))}
+        <div role="group" aria-label="Log level filters" className="flex items-center gap-2 flex-wrap">
+          <span className="text-xs font-semibold text-green-400 uppercase">Level:</span>
+          {levels.map(level => {
+            const levelColorMap: Record<string, string> = {
+              ERROR: 'text-red-400',
+              WARNING: 'text-yellow-400',
+              INFO: 'text-blue-300',
+              DEBUG: 'text-purple-300',
+              TRACE: 'text-gray-400',
+            }
+            return (
+              <label 
+                key={level} 
+                className="flex items-center p-1 rounded hover:bg-zinc-700 cursor-pointer transition-colors focus-within:ring-2 focus-within:ring-blue-400"
+              >
+                <input
+                  type="checkbox"
+                  checked={filters.levels.includes(level)}
+                  onChange={() => handleLevelChange(level)}
+                  className="rounded border-zinc-600 text-blue-500 shadow-sm cursor-pointer focus:ring-2 focus:ring-blue-400"
+                  aria-label={`${t(level.toLowerCase() as any)} - ${logs.filter(l => l.level === level).length} entries`}
+                />
+                <span className={`ml-1 text-xs font-bold ${levelColorMap[level]}`}>{level}</span>
+                <span className="ml-1 text-xs bg-zinc-700 px-1.5 py-0.5 rounded text-zinc-400" aria-hidden="true">
+                  {logs.filter(l => l.level === level).length}
+                </span>
+              </label>
+            )
+          })}
         </div>
 
         {/* Keyword Filter */}
